@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  config.cpp
+ *       Filename:  config.hpp
  *
  *    Description:  Configuration file retrieval
  *
@@ -14,23 +14,19 @@
  *
  * =====================================================================================
  */
-#include "config.hpp"
+#include <vector>
+#include <string>
 
-std::vector<std::string> Config::getProjects()
-{
-	std::vector<std::string> v;
-	v.push_back("building");
-	return v;
-}
-std::string Config::getBuildCommand(std::string project)
-{
-	return "make";
-}
-std::string Config::getTestCommand(std::string project)
-{
-	return "make test";
-}
-std::string Config::getRunCommand(std::string project)
-{
-	return "";
-}
+class Config {
+	/* Config file format:
+	 * project XXXXXX
+	 * \tbuildcmd XXXX XXXX
+	 * \truncmd XXXX
+	 * #vim: set tw=8 sw=8 ai noet:
+	 */
+	public:
+		std::vector<std::string> getProjects();
+		std::string getBuildCommand(std::string project);
+		std::string getTestCommand(std::string project);
+		std::string getRunCommand(std::string project);
+};
