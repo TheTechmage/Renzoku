@@ -1,4 +1,23 @@
 /*
+ * Renzoku - Re-build, re-test, and re-run a program whenever the code changes
+ * Copyright (C) 2015  Colton Wolkins
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ */
+/*
  * =====================================================================================
  *
  *       Filename:  process.cpp
@@ -25,38 +44,8 @@
 Process::Process(std::string command, bool in_path) :
 	mSearchInPath(in_path)
 {
-	std::vector<std::string> command_vector;
-	std::size_t firstChar = command.find_first_not_of(" \t\n\r");
-	std::string* tmpstr = new std::string;
-	for(std::size_t i = firstChar; i < command.length(); i++){
-
-		char c = command.at(i);
-		if( c == ' ' || c == '\n' || c == '\r' )
-		{
-			if(!tmpstr->empty())
-			{
-				command_vector.push_back(*tmpstr);
-				*tmpstr = "";
-			}
-		}
-		else if(c == '\"' )
-		{
-			i++;
-			while( command.at(i) != '\"' )
-			{
-				*tmpstr += command.at(i);
-				i++;
-			}
-		}
-		else
-			*tmpstr += c;
-	}
-	const char** argv = new const char* [command_vector.size()+1];
-	for (std::size_t j = 0; j <= command_vector.size(); ++j)
-		argv[j] = command_vector[j].c_str();
-
-	argv[command_vector.size()+1] = NULL;
-	mCommand = argv;
+	// TODO: Write string parser for parsing out the command line arguments so
+	// that we can push it through the C based functions.
 }
 
 Process::~Process()
