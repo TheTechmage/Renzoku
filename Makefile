@@ -31,4 +31,5 @@ build_test: $(TEST_OBJECTS)
 test: build_test
 	./test
 testv: build_test
-	valgrind ./test -s
+	# https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
+	valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s
