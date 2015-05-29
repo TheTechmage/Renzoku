@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS=-I.
+CXXFLAGS+= -Wall -g
 DEPS=
 
 SOURCES=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp
