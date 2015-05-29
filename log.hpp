@@ -57,6 +57,7 @@ inline LogMethod operator&(LogMethod a, LogMethod b)
 
 class Logger {
 	private:
+		~Logger();
 		std::string mFile;
 		LogMethod mMethod;
 		Logger();

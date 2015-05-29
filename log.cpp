@@ -65,13 +65,20 @@ Logger* Logger::removeLogger()
 {
 	if(!mLogger)
 		return mLogger;
-	delete mLogger;
+	mLogger->log(DEBUG, "Removing ze logger!");
+	Logger* mylogger = mLogger;
 	mLogger = nullptr;
+	delete mylogger;
 	return mLogger;
 }
 
 Logger::Logger()
 {
+}
+
+Logger::~Logger()
+{
+	removeLogger();
 }
 
 void Logger::log(LogLevel level, std::string format, ...)
