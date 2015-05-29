@@ -117,11 +117,11 @@ bool Process::run()
 		Logger::getLogger()->log(DEBUG, "The child has a pid of %d", mProc);
 		usleep(10);
 		int status = 0;
-		pid_t pid = waitpid(pid, &status, WNOHANG);
+		pid_t pid = waitpid(mProc, &status, WNOHANG);
 		if(pid < 0)
 			Logger::getLogger()->logCError("waitpid");
 			//perror("waitpid");
-		if(pid > 0)
+		if(pid > 0 && status != 0)
 		{
 			Logger::getLogger()->log(ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
 			return false;
@@ -136,10 +136,10 @@ bool Process::runAndWait()
 	if(!this->run())
 		return false;
 	int status = 0;
-	pid_t pid = waitpid(pid, &status, 0);
+	pid_t pid = waitpid(mProc, &status, 0);
 	if(pid < 0)
 		Logger::getLogger()->logCError("waitpid");
-	if(pid > 0)
+	if(pid > 0 && status != 0)
 	{
 		Logger::getLogger()->log(ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
 		return false;
@@ -156,7 +156,7 @@ bool Process::kill()
 		return false;
 	}
 	int status = 0;
-	pid_t pid = waitpid(pid, &status, 0);
+	pid_t pid = waitpid(mProc, &status, 0);
 	if(pid < 0)
 		Logger::getLogger()->logCError("waitpid");
 	if(status != 0)
@@ -165,6 +165,7 @@ bool Process::kill()
 }
 int Process::status()
 {
+	return 0;
 }
 
 #ifdef NOBUILD
