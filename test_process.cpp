@@ -34,11 +34,15 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 		const char* FILENAME = "/tmp/unit_test_file_0";
 
 		REQUIRE_FALSE(exists_test3(FILENAME));
-		Process p(std::string("touch ") + FILENAME, true);
+		std::string command = "touch ";
+		command += FILENAME;
+		Process p(command, true);
 		CHECK_FALSE(exists_test3(FILENAME));
 		p.runAndWait();
 		REQUIRE(exists_test3(FILENAME));
-		Process p2(std::string("rm ") + FILENAME, true);
+		command = "rm ";
+		command += FILENAME;
+		Process p2(command, true);
 		p2.runAndWait();
 		REQUIRE_FALSE(exists_test3(FILENAME));
 	}
