@@ -3,11 +3,11 @@ CFLAGS=-I.
 CXXFLAGS+= -Wall -g
 DEPS=
 
-SOURCES=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp
+SOURCES=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp
 #OBJECTS=$(SOURCES:.c=.o)
 OBJECTS=$(SOURCES:.cpp=.o)
 NOMAIN=$(SOURCES:main.cpp=)
-TESTS=$(NOMAIN:signals.cpp=) test_main.cpp test_config.cpp test_log.cpp test_process.cpp # test_tokenizer.cpp
+TESTS=$(NOMAIN:signals.cpp=) test_main.cpp test_config.cpp test_log.cpp test_process.cpp test_util.cpp # test_tokenizer.cpp
 TEST_OBJECTS=$(TESTS:.cpp=.o)
 
 %.o: %.c $(DEPS)
