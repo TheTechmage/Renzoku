@@ -17,23 +17,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-#include "tokenizer.hpp"
-#include <sstream>
+//#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+//#include "catch.hpp"
+#define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+#include "log.hpp"
 
-TEST_CASE( "Parsing Tokens", "[Tokenizer::parse]" ) {
-	Tokenizer tok;
-	std::stringstream test;
-	test <<
-		"test_project {" << std::endl <<
-		"test=1," << std::endl <<
-		"	 meep = 39" << std::endl <<
-		"}" << std::endl;
+int main( int argc, char* const argv[] )
+{
+  Catch::Session session;
 
-	tok = Tokenizer(test);
-	CHECK(tok.next() == "test_project");
-	Token token = tok.getToken();
-	CHECK_FALSE(token.getType() == ERROR);
-	CHECK(token.getType() == PROJECT);
-	CHECK(token.getValue() == "test_project");
+  // writing to session.configData() here sets defaults
+  // this is the preferred way to set them
+
+  int returnCode = session.applyCommandLine( argc, argv );
+  if( returnCode != 0 ) // Indicates a command line error
+    return returnCode;
+
+  // writing to session.configData() or session.Config() here 
+  // overrides command line args
+  // only do this if you know you need to
+
+  returnCode = session.run();
+  Logger::getLogger()->removeLogger();
 }
