@@ -1,4 +1,4 @@
-連続 作業 (Renzoku sagyō -- Continuous Work)
+連続  作業 (Renzoku sagyō -- Continuous Work)
 ===========================================
 This is a project that I am working on that has I needed to use while I made
 programs in C. I have found need of a utility that does what this program is
