@@ -48,5 +48,3 @@ os:
   - linux
   # - osx
 
-osx_image: xcode61
-
