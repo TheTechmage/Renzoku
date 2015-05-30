@@ -1,4 +1,4 @@
-連続   作業 (Renzoku sagyō -- Continuous Work) [![Build
+連続  作業 (Renzoku sagyō -- Continuous Work) [![Build
 Status](https://magnum.travis-ci.com/frostyfrog/Renzoku.svg?token=yg8hiFH2mJxs3vAxuLz1)](https://magnum.travis-ci.com/frostyfrog/Renzoku)
 ===========================================
 This is a project that I am working on that has I needed to use while I made
