@@ -105,6 +105,20 @@ bool Process::run()
 	else if(mProc == 0)
 	{
 		Logger::getLogger()->log(DEBUG, "In child process.");
+		size_t size = 0, i = 1;
+		while(mCommand[i] != NULL)
+		{
+			size += strlen(mCommand[i]);
+			i++;
+		}
+		char* args_string = new char[size + 1];
+		//strcpy(args_string, mCommand[0]);
+		args_string[0] = '\0';
+		for(size_t i2 = 1; mCommand[i2] != NULL; i2++)
+			strcat(args_string, mCommand[i2]);
+		Logger::getLogger()->log(DEBUG, "running command %s with %s arguments", mCommand[0], args_string);
+		//delete args_string;
+		delete [] args_string;
 		if(mSearchInPath)
 			execvp(mCommand[0], (char**)mCommand);
 		else
