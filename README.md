@@ -16,5 +16,3 @@ Yes, there are some programs out there that do similar things (like Grunt), but
 they aren't able to fill my need completely or easily. I just want something
 that I can install and use with a few simple tweaks to a config file (like
 Travis' yaml configs).
-
-# vim: set tw=79 ts=2 sts=2 sw=2 ai et :
