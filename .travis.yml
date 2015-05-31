@@ -12,7 +12,9 @@ before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - sudo apt-get install -qq valgrind
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
-script: make test && make testv
+script: 
+  - make test
+  - make testv
 
 branches:
   only:

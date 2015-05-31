@@ -32,4 +32,8 @@ test: build_test
 	./test
 testv: build_test
 	# https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
-	valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s
+	if [[ "${TRAVIS}" == "" ]]; then\
+		valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s;\
+	else\
+		valgrind --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s;\
+	fi
