@@ -35,5 +35,5 @@ testv: build_test
 	if [[ "${TRAVIS}" == "" ]]; then\
 		valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s;\
 	else\
-		valgrind --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s;\
+		valgrind --show-reachable=yes --error-limit=no ./test -s;\
 	fi
