@@ -13,7 +13,7 @@ TEST_OBJECTS=$(TESTS:.cpp=.o)
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 %.o: %.cpp $(DEPS)
-	$(CXX) -c -std=c++11 -o $@ $< $(CXXFLAGS)
+	$(CXX) -c -std=c++0x -o $@ $< $(CXXFLAGS)
 
 .PHONY: all clean test testv
 
