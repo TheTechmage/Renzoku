@@ -21,7 +21,6 @@
 #include "catch.hpp"
 #include <cstring>
 #include <string>
-#include <iostream>
 #include <unistd.h>
 
 TEST_CASE( "Testing Utility Functions", "[Util]" ) {
@@ -29,16 +28,19 @@ TEST_CASE( "Testing Utility Functions", "[Util]" ) {
 	SECTION("cwd") {
 		std::string dir;
 		dir = Util::cwd();
+		INFO("Current Directory is: " << Util::cwd());
 		REQUIRE_FALSE(dir == "/tmp");
 		REQUIRE(chdir("/tmp/") == 0);
+		INFO("Current Directory is: " << Util::cwd());
 		REQUIRE(Util::cwd() == "/tmp");
 		chdir(dir.c_str());
+		INFO("Current Directory is: " << Util::cwd());
 	}
 	SECTION("listDir") {
 		Util::DirList dir = Util::listDir(Util::cwd(), Util::FILETYPE);
-		//for(std::string item : dir)
-		//	std::cout << "Follow this command: " << item << std::endl;
 		REQUIRE_FALSE(dir.empty());
+		for(std::string item : dir)
+			INFO( "listDir: " << item );
 		REQUIRE_FALSE(std::find(dir.begin(), dir.end(), "Makefile") == dir.end());
 	}
 }

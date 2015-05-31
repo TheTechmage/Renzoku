@@ -33,17 +33,22 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 	SECTION("runAndWait") {
 		const char* FILENAME = "/tmp/unit_test_file_0";
 
+		INFO("Making sure our test file doesn't exist (Pretest)");
 		REQUIRE_FALSE(exists_test3(FILENAME));
 		std::string command = "touch ";
 		command += FILENAME;
+
 		Process p(command, true);
+		INFO("Making sure our test file doesn't exist (After class instantiation)");
 		CHECK_FALSE(exists_test3(FILENAME));
 		p.runAndWait();
+		INFO("Making sure our test file does exist (test)");
 		REQUIRE(exists_test3(FILENAME));
 		command = "rm ";
 		command += FILENAME;
 		Process p2(command, true);
 		p2.runAndWait();
+		INFO("Making sure our test file doesn't exist (Clearnup)");
 		REQUIRE_FALSE(exists_test3(FILENAME));
 	}
 }
