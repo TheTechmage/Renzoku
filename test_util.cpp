@@ -20,14 +20,26 @@
 #include "util.hpp"
 #include "catch.hpp"
 #include <cstring>
+#include <string>
+#include <iostream>
 #include <unistd.h>
 
 TEST_CASE( "Testing Utility Functions", "[Util]" ) {
 
 	SECTION("cwd") {
-		REQUIRE_FALSE(Util::cwd() == "/tmp");
+		std::string dir;
+		dir = Util::cwd();
+		REQUIRE_FALSE(dir == "/tmp");
 		REQUIRE(chdir("/tmp/") == 0);
 		REQUIRE(Util::cwd() == "/tmp");
+		chdir(dir.c_str());
+	}
+	SECTION("listDir") {
+		Util::DirList dir = Util::listDir(Util::cwd(), Util::FILETYPE);
+		//for(std::string item : dir)
+		//	std::cout << "Follow this command: " << item << std::endl;
+		REQUIRE_FALSE(dir.empty());
+		REQUIRE_FALSE(std::find(dir.begin(), dir.end(), "Makefile") == dir.end());
 	}
 }
 
