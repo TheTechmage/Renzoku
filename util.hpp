@@ -10,7 +10,7 @@ namespace Util
 		DIRECTORY,
 		FILETYPE
 	};
-	std::string cwd();
+	const std::string cwd();
 	DirList listDir(std::string path, FileType ft);
 }
 
