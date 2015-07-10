@@ -45,7 +45,7 @@ TEST_CASE( "Testing Utility Functions", "[Util]" ) {
 	}
 	SECTION("getCurrentDateTime") {
 		std::string current_time = Util::getCurrentDateTime();
-		REQUIRE(current_time == "test");
+		REQUIRE_FALSE(current_time == "test");
 	}
 }
 
