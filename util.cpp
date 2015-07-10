@@ -7,6 +7,19 @@
 
 namespace Util
 {
+	const std::string getCurrentDateTime() {
+		time_t now = time(NULL);
+		struct tm time_struct;
+		char buf[128];
+		time_struct = *localtime(&now);
+
+		// http://en.cppreference.com/w/cpp/chrono/c/strftime contains more
+		// information about the precise formats
+		strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &time_struct);
+
+		return buf;
+	}
+
 	const std::string cwd() {
 		char cwd[1024];
 

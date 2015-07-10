@@ -11,6 +11,7 @@ namespace Util
 		FILETYPE
 	};
 	const std::string cwd();
+	const std::string getCurrentDateTime();
 	DirList listDir(std::string path, FileType ft);
 }
 
