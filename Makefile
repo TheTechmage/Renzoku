@@ -39,7 +39,7 @@ build_test: $(TEST_OBJECTS)
 	$(CXX) $(TEST_OBJECTS) -o $(BIN_DIR)/$(TEST_EXECUTABLE)
 
 test: build_test
-	./bin/TestCode
+	$(BIN_DIR)/$(TEST_EXECUTABLE)
 testv: build_test
 	# https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
 	if [[ "${TRAVIS}" == "" ]]; then\
