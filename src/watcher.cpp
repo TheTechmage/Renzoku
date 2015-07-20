@@ -17,16 +17,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
-Watcher::Watcher(std::string, bool recursive)
+Watcher::Watcher(std::string dir, bool recursive) :
+	mRecursive(recursive),
+	mDirectory(dir)
+{
+	mINotify = inotify_init();
+	watchDirectory(dir);
+}
+void Watcher::watchDirectory(std::string dir)
 {
 }
-void Watcher::watchDirectory(std::string)
+void Watcher::removeWatch(std::string dir)
 {
 }
-void Watcher::removeWatch(std::string)
-{
-}
-void Watcher::watchFileType(std::string)
+void Watcher::watchFileType(std::string ft)
 {
 }
 void Watcher::listen()

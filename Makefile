@@ -1,39 +1,51 @@
 CC=gcc
-CFLAGS=-I.
-CXXFLAGS+= -Wall -g
+CFLAGS=-Isrc/ -I.
+CXXFLAGS+= -Wall -g -Isrc/
 DEPS=
+BIN_DIR = bin
+OBJ_DIR = obj
+EXECUTABLE = builder
+TEST_EXECUTABLE = TestCode
 
-SOURCES=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp
+SOURCES:=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp
+SOURCES:=$(SOURCES:%.cpp=src/%.cpp)
 #OBJECTS=$(SOURCES:.c=.o)
-OBJECTS=$(SOURCES:.cpp=.o)
-NOMAIN=$(SOURCES:main.cpp=)
-TESTS=$(NOMAIN:signals.cpp=) test_main.cpp test_config.cpp test_log.cpp test_process.cpp test_util.cpp # test_tokenizer.cpp
-TEST_OBJECTS=$(TESTS:.cpp=.o)
+OBJECTS=$(SOURCES:%.cpp=$(OBJ_DIR)/%.o)
+NOMAIN=$(SOURCES:src/main.cpp=)
+TESTS:=test_main.cpp test_config.cpp test_log.cpp test_process.cpp test_util.cpp # test_tokenizer.cpp
+TESTS:=$(NOMAIN:src/signals.cpp=) $(TESTS:%.cpp=tests/%.cpp)
+TEST_OBJECTS=$(TESTS:%.cpp=$(OBJ_DIR)/%.o)
 
-%.o: %.c $(DEPS)
+$(OBJ_DIR)/%.o: %.c $(DEPS)
+	@mkdir -p `dirname $@`
 	$(CC) -c -o $@ $< $(CFLAGS)
-%.o: %.cpp $(DEPS)
+$(OBJ_DIR)/%.o: %.cpp $(DEPS)
+	@mkdir -p `dirname $@`
 	$(CXX) -c -std=c++11 -o $@ $< $(CXXFLAGS)
 
 .PHONY: all clean test testv
 
-all: builder
+all: $(BIN_DIR)/$(EXECUTABLE)
 
-builder: $(OBJECTS)
-	$(CXX) $(OBJECTS) -o builder
+$(BIN_DIR)/$(EXECUTABLE): $(OBJECTS)
+	@if [[ ! -d $(BIN_DIR) ]]; then mkdir -p $(BIN_DIR); fi
+	$(CXX) $(OBJECTS) -o $(BIN_DIR)/$(EXECUTABLE)
 
 clean:
-	rm *.o builder test
+	rm -rvf bin/ obj/
 
 build_test: $(TEST_OBJECTS)
-	$(CXX) $(TEST_OBJECTS) -o test
+	@if [[ ! -d $(BIN_DIR) ]]; then mkdir -p $(BIN_DIR); fi
+	$(CXX) $(TEST_OBJECTS) -o $(BIN_DIR)/$(TEST_EXECUTABLE)
 
 test: build_test
-	./test
+	./bin/TestCode
 testv: build_test
 	# https://wiki.wxwidgets.org/Valgrind_Suppression_File_Howto
 	if [[ "${TRAVIS}" == "" ]]; then\
-		valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp ./test -s;\
+		valgrind --show-leak-kinds=all --leak-check=full --show-reachable=yes --error-limit=no --suppressions=./valgrind.supp $(BIN_DIR)/$(TEST_EXECUTABLE) -s;\
 	else\
-		valgrind --show-reachable=yes --error-limit=no ./test -s;\
+		valgrind --show-reachable=yes --error-limit=no$(BIN_DIR)/$(TEST_EXECUTABLE) -s;\
 	fi
+
+# vim: set tw=0 :
