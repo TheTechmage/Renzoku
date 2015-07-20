@@ -40,11 +40,11 @@ TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 	CHECK(cf.getTestCommand(proj) == "make test");
 	CHECK(cf.getRunCommand(proj).empty());
 	CHECK_FALSE(cf.sections.empty());
-	CHECK(false);
+	//CHECK(false);
 	for(std::vector<std::string>::const_iterator str = cf.sections.begin(); str != cf.sections.end(); ++str) {
 		std::cout << std::string(*str) << std::endl;
 		INFO( *str );
 	}
-	REQUIRE(false);
+	//REQUIRE(false);
 }
 
