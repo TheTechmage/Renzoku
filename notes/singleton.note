@@ -1,0 +1,13 @@
+
+template<class T>
+class Singleton
+{
+	public:
+		static T* getInstance() {
+			if(mInstance == NULL)
+				mInstance = new T();
+			return mInstance;
+		}
+	private:
+		T* mInstance;
+}

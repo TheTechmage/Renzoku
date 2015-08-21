@@ -25,26 +25,41 @@
 TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 	std::stringstream test;
 	test <<
-		"test_project {\n"
-		"test=1,\n"
-		"	 meep = 39\n"
+		"Watcher {\n"
+		"    Filter = '*.cpp', '*.hpp', '*.c', '*.h', 'include/*.hxx';\n"
+		"    Include = 'Makefile';\n"
+		"    Exclude = 'src/Config.cpp';\n"
+		"}\n"
+		"Compiler {\n"
+		"    Command = 'make';\n"
+		"    Enabled = True;\n"
+		"}\n"
+		"Tester {\n"
+		"    Command = 'make test';\n"
+		"    IgnoreStatus = 2,3,4;\n"
+		"    Enabled = True;\n"
+		"}\n"
+		"Coverage { }; // Future DLL?\n"
+		"Runner {\n"
+		"    Command = 'bin/program --workdir=\"$cwd\"';\n"
+		"    Enabled = True;\n"
 		"}\n";
 
-	Config cf;
-	//INFO("Config file: " << test);
-	INFO("Make sure that our first project is our dummy project");
-	CHECK(cf.getProjects().front() == "building");
-	std::string proj = cf.getProjects().front();
-	CAPTURE(proj);
-	CHECK(cf.getBuildCommand(proj) == "make");
-	CHECK(cf.getTestCommand(proj) == "make test");
-	CHECK(cf.getRunCommand(proj).empty());
-	CHECK_FALSE(cf.sections.empty());
+	INFO("Config file: " << test.str());
+	Config cf(test);
+	//INFO("Make sure that our first project is our dummy project");
+	//CHECK(cf.getProjects().front() == "building");
+	//std::string proj = cf.getProjects().front();
+	//CAPTURE(proj);
+	//CHECK(cf.getBuildCommand(proj) == "make");
+	//CHECK(cf.getTestCommand(proj) == "make test");
+	//CHECK(cf.getRunCommand(proj).empty());
+	//CHECK_FALSE(cf.sections.empty());
 	//CHECK(false);
-	for(std::vector<std::string>::const_iterator str = cf.sections.begin(); str != cf.sections.end(); ++str) {
-		std::cout << std::string(*str) << std::endl;
-		INFO( *str );
-	}
+	//for(std::vector<std::string>::const_iterator str = cf.sections.begin(); str != cf.sections.end(); ++str) {
+	//	std::cout << std::string(*str) << std::endl;
+	//	INFO( *str );
+	//}
 	//REQUIRE(false);
 }
 
