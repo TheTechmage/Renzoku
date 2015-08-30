@@ -33,16 +33,31 @@
  *
  * =====================================================================================
  */
+#pragma once
 #include <vector>
 #include <string>
+#include <istream>
+#include <yaml-cpp/yaml.h>
 
+#define CONFIG_NAME "renzoku.conf"
 
-class iConfigSection {
-	public:
-		// virtual void registerSection() = 0; // This will be handled by a macro
-		virtual void readSection() = 0;
-		virtual void writeSection() = 0;
+struct WatchConfig {
+	std::vector<std::string> filters;
+	std::vector<std::string> include;
+	std::vector<std::string> exclude;
 };
+struct iCommandConfig {
+	bool enabled = true;
+	char** command = NULL;
+};
+struct CompileConfig : public iCommandConfig {
+};
+struct TestConfig : public iCommandConfig {
+	std::vector<short> ignore_states; // TODO: Populate this
+};
+struct ProgramConfig : public iCommandConfig {
+};
+
 
 class Config {
 	/* Config file format:
@@ -52,6 +67,15 @@ class Config {
 	 * #vim: set tw=8 sw=8 ai noet:
 	 */
 	private:
+		YAML::Node config;
+		WatchConfig mWatch;
+		CompileConfig mCompile;
+		TestConfig mTest;
+		ProgramConfig mProgram;
+		void parseWatcher(const YAML::Node&);
+		void parseCommand(const YAML::Node&, iCommandConfig&);
+		void parseConfig(std::istream&);
+		std::ifstream findConfig();
 	public:
 		std::vector<std::string> sections = {
 			"test",
@@ -59,8 +83,11 @@ class Config {
 #include "config_sections.hpp"
 #undef CONFIG_SECTION
 		};
-		std::vector<std::string> getProjects();
-		std::string getBuildCommand(std::string project);
-		std::string getTestCommand(std::string project);
-		std::string getRunCommand(std::string project);
+		Config();
+		Config(std::istream&);
+		~Config();
+		inline WatchConfig getWatchConfig() { return mWatch; };
+		inline CompileConfig getCompileConfig() { return mCompile; };
+		inline TestConfig getTestConfig() { return mTest; };
+		inline ProgramConfig getProgramConfig() { return mProgram; };
 };

@@ -47,5 +47,14 @@ TEST_CASE( "Testing Utility Functions", "[Util]" ) {
 		std::string current_time = Util::getCurrentDateTime();
 		REQUIRE_FALSE(current_time == "test");
 	}
+	SECTION("lowercase") {
+		std::string str = "TeSt H2O";
+		Util::lowercase(str);
+		REQUIRE(str == "test h2o");
+	}
+	SECTION("lowercase_r") {
+		std::string str = "TeSt H2O";
+		REQUIRE(Util::lowercase_r(str) == "test h2o");
+	}
 }
 

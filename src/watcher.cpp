@@ -1,31 +1,56 @@
 /*
  * Renzoku - Re-build, re-test, and re-run a program whenever the code changes
  * Copyright (C) 2015  Colton Wolkins
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+#include "watcher.hpp"
+#include "util.hpp"
+
 Watcher::Watcher(std::string dir, bool recursive) :
-	mRecursive(recursive),
-	mDirectory(dir)
+	mDirectory(dir),
+	mRecursive(recursive)
 {
 	mINotify = inotify_init();
-	watchDirectory(dir);
+	watchDirectory();
 }
-void Watcher::watchDirectory(std::string dir)
+void Watcher::watchDirectory()
 {
+
+	mINotify = inotify_init();
+	if( mINotify  < 0 )
+		perror("inotify_init");
+	mFDs.push_back(inotify_add_watch(mINotify, Util::cwd().c_str(), IN_MODIFY));
+	if(mRecursive)
+	{
+		this->recurse(Util::cwd());
+	}
+}
+void Watcher::recurse(std::string maindir)
+{
+	Util::DirList dirs = Util::listDir(maindir, Util::DIRECTORY);
+	if(dirs.size() > 0)
+	{
+		for(std::string dir : dirs)
+		{
+			mFDs.push_back(inotify_add_watch(mINotify, (maindir + '/' +
+							dir).c_str(), IN_MODIFY));
+			this->recurse(maindir + '/' + dir);
+		}
+	}
 }
 void Watcher::removeWatch(std::string dir)
 {

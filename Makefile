@@ -1,19 +1,20 @@
 CC=gcc
 CFLAGS=-Isrc/ -I.
-CXXFLAGS+= -Wall -g -Isrc/
+CXXFLAGS+= -Wall -g -Isrc/ -lyaml-cpp
 DEPS=
 BIN_DIR = bin
 OBJ_DIR = obj
 EXECUTABLE = builder
 TEST_EXECUTABLE = TestCode
 
-SOURCES:=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp
+SOURCES:=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp watcher.cpp
 SOURCES:=$(SOURCES:%.cpp=src/%.cpp)
 #OBJECTS=$(SOURCES:.c=.o)
 OBJECTS=$(SOURCES:%.cpp=$(OBJ_DIR)/%.o)
 NOMAIN=$(SOURCES:src/main.cpp=)
+NOMAIN2=$(NOMAIN:src/watcher.cpp=)
 TESTS:=test_main.cpp test_config.cpp test_log.cpp test_process.cpp test_util.cpp # test_tokenizer.cpp
-TESTS:=$(NOMAIN:src/signals.cpp=) $(TESTS:%.cpp=tests/%.cpp)
+TESTS:=$(NOMAIN2:src/signals.cpp=) $(TESTS:%.cpp=tests/%.cpp)
 TEST_OBJECTS=$(TESTS:%.cpp=$(OBJ_DIR)/%.o)
 
 $(OBJ_DIR)/%.o: %.c $(DEPS)
@@ -29,14 +30,14 @@ all: $(BIN_DIR)/$(EXECUTABLE)
 
 $(BIN_DIR)/$(EXECUTABLE): $(OBJECTS)
 	@if [[ ! -d $(BIN_DIR) ]]; then mkdir -p $(BIN_DIR); fi
-	$(CXX) $(OBJECTS) -o $(BIN_DIR)/$(EXECUTABLE)
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -o $(BIN_DIR)/$(EXECUTABLE)
 
 clean:
 	rm -rvf bin/ obj/
 
 build_test: $(TEST_OBJECTS)
 	@if [[ ! -d $(BIN_DIR) ]]; then mkdir -p $(BIN_DIR); fi
-	$(CXX) $(TEST_OBJECTS) -o $(BIN_DIR)/$(TEST_EXECUTABLE)
+	$(CXX) $(CXXFLAGS) $(TEST_OBJECTS) -o $(BIN_DIR)/$(TEST_EXECUTABLE)
 
 test: build_test
 	$(BIN_DIR)/$(TEST_EXECUTABLE)

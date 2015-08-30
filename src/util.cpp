@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <string>
+#include <algorithm>
 #include "exceptions.hpp"
 #include "util.hpp"
 #include <sys/stat.h>
@@ -27,6 +28,18 @@ namespace Util
 			throw CException("getcwd");
 
 		return std::string(cwd);
+	}
+
+	void lowercase(std::string& input) {
+		// http://stackoverflow.com/a/313990
+		std::transform(input.begin(), input.end(), input.begin(), ::tolower);
+	}
+
+	std::string lowercase_r(const std::string& input) {
+		// http://stackoverflow.com/a/313990
+		std::string data = input;
+		std::transform(data.begin(), data.end(), data.begin(), ::tolower);
+		return data;
 	}
 
 	DirList listDir(std::string path, FileType ft) {

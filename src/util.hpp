@@ -12,6 +12,8 @@ namespace Util
 	};
 	const std::string cwd();
 	const std::string getCurrentDateTime();
+	void lowercase(std::string&);
+	std::string lowercase_r(const std::string&);
 	DirList listDir(std::string path, FileType ft);
 }
 
