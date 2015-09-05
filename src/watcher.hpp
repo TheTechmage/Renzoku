@@ -33,21 +33,32 @@
 #include <string>
 #include <vector>
 
+#include "config.hpp"
+#include "process.hpp"
+
 #define EVENT_SIZE	( sizeof (struct inotify_event) )
 #define EVENT_BUF_LEN	( 1024 * ( EVENT_SIZE + 16 ) )
 
 class Watcher {
 	private:
 		std::string mDirectory;
+		bool mRecursive;
 		std::vector<std::string> mFiletypes;
 		std::vector<int> mFDs;
-		bool mRecursive;
+		char mBuffer[EVENT_BUF_LEN];
+		Config& mConfig;
 		int mINotify;
+		time_t mTimer;
+		Process* mBuilder;
 		void watchDirectory();
 		void removeWatch(std::string);
-		void recurse(std::string);
+		void removeAllWatches();
+		void recursiveWatch(std::string);
+		bool rebuild();
+		void restartProgram();
 	public:
-		Watcher(std::string, bool recursive);
+		Watcher(std::string, Config& conf, bool recursive);
+		~Watcher();
 		void watchFileType(std::string);
 		void listen();
 };

@@ -18,15 +18,35 @@
  *
  */
 #include "watcher.hpp"
+#include "process.hpp"
 #include "util.hpp"
+#include "log.hpp"
 
-Watcher::Watcher(std::string dir, bool recursive) :
+Watcher::Watcher(std::string dir, Config& conf , bool recursive) :
 	mDirectory(dir),
-	mRecursive(recursive)
+	mRecursive(recursive),
+	mConfig(conf),
+	mTimer(time(0)-15),
+	mBuilder(conf.getProcesses()[COMPILE_STEP_POS])
 {
 	mINotify = inotify_init();
 	watchDirectory();
 }
+
+Watcher::~Watcher()
+{
+	for(Process* proc : mConfig.getProcesses())
+		proc->kill();
+	this->removeAllWatches();
+	close(mINotify);
+}
+
+void Watcher::removeAllWatches()
+{
+	for(int watch : this->mFDs)
+		inotify_rm_watch(mINotify, watch);
+}
+
 void Watcher::watchDirectory()
 {
 
@@ -36,30 +56,79 @@ void Watcher::watchDirectory()
 	mFDs.push_back(inotify_add_watch(mINotify, Util::cwd().c_str(), IN_MODIFY));
 	if(mRecursive)
 	{
-		this->recurse(Util::cwd());
+		this->recursiveWatch(Util::cwd());
 	}
 }
-void Watcher::recurse(std::string maindir)
+void Watcher::recursiveWatch(std::string maindir)
 {
 	Util::DirList dirs = Util::listDir(maindir, Util::DIRECTORY);
 	if(dirs.size() > 0)
 	{
 		for(std::string dir : dirs)
 		{
+			if(dir == "." || dir == "..")
+				continue;
 			mFDs.push_back(inotify_add_watch(mINotify, (maindir + '/' +
 							dir).c_str(), IN_MODIFY));
-			this->recurse(maindir + '/' + dir);
+			this->recursiveWatch(maindir + '/' + dir);
 		}
 	}
 }
 void Watcher::removeWatch(std::string dir)
 {
+	// /proc/self/fd/#
 }
 void Watcher::watchFileType(std::string ft)
 {
 }
 void Watcher::listen()
 {
+	int length, i;
+	struct tm timediff = {0};
+	length = read( mINotify, mBuffer, EVENT_BUF_LEN);
+	i = 0;
+	if( length <= 0 )
+		Logger::getLogger()->logCError("read");
+
+	Logger::getLogger()->log(DEBUG, "File %s!%d!", mBuffer,length);
+	while( i < length ) {
+		struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
+		Logger::getLogger()->log(DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+		if( event->len &&
+			(event->mask & IN_MODIFY) &&
+			(! (event->mask & IN_ISDIR))
+			){
+			for(auto str : mConfig.getWatchConfig().filters)
+			{
+				if(Util::strMatch(str, std::string(event->name))) {
+					printf("\033[0;32m=> File %s was modified!\033[0m", event->name);
+					//Logger::getLogger()->log(DEBUG, "%ju", timer);
+					//Logger::getLogger()->log(DEBUG, "%ju", timer+5);
+					//Logger::getLogger()->log(DEBUG, "%ju", time(0));
+					timediff = *localtime(&mTimer);
+					timediff.tm_sec += 5;
+					if(mktime(&timediff) <= time(0)) {
+						if(this->rebuild()) {
+							Logger::getLogger()->log(DEBUG, "%ju", mktime(&timediff));
+							mTimer = time(0);
+							this->restartProgram();
+						}
+					}
+				}
+			}
+		}
+		i += EVENT_SIZE + event->len;
+	}
+}
+
+bool Watcher::rebuild()
+{
+	return mBuilder->runAndWait();
+}
+
+void Watcher::restartProgram()
+{
+	mConfig.restartProcesses();
 }
 
 #ifdef DEBUG
@@ -68,7 +137,7 @@ void watcher() {
 	int fd;
 	int wd;
 	char buffer[EVENT_BUF_LEN];
-	time_t timer = time(0)-15;
+	time_t mTimer = time(0)-15;
 	struct tm timediff = {0};
 
 	pid_t progpid;
@@ -102,12 +171,12 @@ void watcher() {
 							//printf("%ju\n", timer);
 							//printf("%ju\n", timer+5);
 							//printf("%ju\n", time(0));
-							timediff = *localtime(&timer);
+							timediff = *localtime(&mTimer);
 							timediff.tm_sec += 5;
 							if(mktime(&timediff) <= time(0)) {
 								if(gRunning && !rebuild()) {
 									//printf("%ju\n", mktime(&timediff));
-									timer = time(0);
+									mTimer = time(0);
 									if(killprog(progpid))
 										progpid = runprog();
 								}

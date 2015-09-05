@@ -36,60 +36,38 @@
  */
 #include "process.hpp"
 #include "log.hpp"
+#include "util.hpp"
 #include <string>
 #include <vector>
 #include <cstddef>
 #include <cstring>
 #include <sys/wait.h>
 
-Process::Process(std::string &command, bool in_path) :
-	mSearchInPath(in_path)
+Process::Process(const std::string &command, bool in_path) :
+	mSearchInPath(in_path),
+	mProc(NULL),
+	mGeneratedCommand(true)
 {
-	// TODO: Write string parser for parsing out the command line arguments so
-	// that we can push it through the C based functions.
-	size_t position = 0;
-	size_t tmppos = 0;
-	bool inQuote = false;
-	std::vector<std::string> args;
-	while(position < command.length())
-	{
-		switch(command[position + tmppos])
-		{
-			case '"':
-				inQuote = !inQuote;
-				break;
-			case ' ':
-				if(inQuote)
-					break;
-				args.push_back(command.substr(position, tmppos));
-				position += tmppos + 1;
-				tmppos = 0;
-				break;
-			default:
-				break;
-		}
-		tmppos++;
-		if(position + tmppos >= command.size())
-		{
-			args.push_back(command.substr(position));
-			break;
-		}
-	}
-	mCommand = new char*[args.size() + 1];
-	size_t i = 0;
-	for(std::string &item : args)
-	{
-		mCommand[i] = new char[item.length()+1];
-		strcpy(mCommand[i++], item.c_str());
-	}
-	mCommand[i] = NULL;
+	mCommand = Util::parseCommand(command);
+}
+
+Process::Process(char** command, bool in_path) :
+	mSearchInPath(in_path),
+	mProc(NULL),
+	mCommand(command),
+	mGeneratedCommand(false)
+{
 }
 
 Process::~Process()
 {
-	for(size_t i = 0; mCommand[i]; i++)
-		delete [] mCommand[i];
-	delete [] mCommand;
+	this->kill();
+	if(mGeneratedCommand)
+	{
+		for(size_t i = 0; mCommand[i]; i++)
+			delete [] mCommand[i];
+		delete [] mCommand;
+	}
 }
 
 bool Process::run()
@@ -164,7 +142,7 @@ bool Process::kill()
 {
 	if(mProc <= 1)
 		return true;
-	if(::kill(mProc, SIGTERM))
+	if((!::kill(mProc, 0)) && ::kill(mProc, SIGTERM))
 	{
 		Logger::getLogger()->logCError("kill");
 		return false;
@@ -177,7 +155,7 @@ bool Process::kill()
 		Logger::getLogger()->log(SUCCESS, "Process [%d] exited with %d", mProc, status);
 	return true;
 }
-int Process::status()
+int Process::status() const
 {
 	return 0;
 }

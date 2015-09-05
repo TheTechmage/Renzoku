@@ -72,8 +72,10 @@ Logger* Logger::removeLogger()
 	return mLogger;
 }
 
-Logger::Logger()
+Logger::Logger() :
+		mMethod(STDHANDLE)
 {
+	this->log(DEBUG, "Starting logging service for renzoku　【れんぞく】。");
 }
 
 Logger::~Logger()

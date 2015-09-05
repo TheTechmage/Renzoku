@@ -38,15 +38,20 @@
 #include <string>
 #include <istream>
 #include <yaml-cpp/yaml.h>
+#include "process.hpp"
 
 #define CONFIG_NAME "renzoku.conf"
 
-struct WatchConfig {
+struct iConfig {
+	virtual ~iConfig() {}
+};
+
+struct WatchConfig : public iConfig {
 	std::vector<std::string> filters;
 	std::vector<std::string> include;
 	std::vector<std::string> exclude;
 };
-struct iCommandConfig {
+struct iCommandConfig : public iConfig {
 	bool enabled = true;
 	char** command = NULL;
 };
@@ -68,18 +73,17 @@ class Config {
 	 */
 	private:
 		YAML::Node config;
-		WatchConfig mWatch;
-		CompileConfig mCompile;
-		TestConfig mTest;
-		ProgramConfig mProgram;
+#define CONFIG_SECTION(X) X##Config m##X;
+#include "config_sections.hpp"
+#undef CONFIG_SECTION
+		std::vector<Process*> processes;
 		void parseWatcher(const YAML::Node&);
 		void parseCommand(const YAML::Node&, iCommandConfig&);
 		void parseConfig(std::istream&);
 		std::ifstream findConfig();
 	public:
-		std::vector<std::string> sections = {
-			"test",
-#define CONFIG_SECTION(X) #X,
+		std::vector<iConfig> sections = {
+#define CONFIG_SECTION(X) m##X,
 #include "config_sections.hpp"
 #undef CONFIG_SECTION
 		};
@@ -90,4 +94,6 @@ class Config {
 		inline CompileConfig getCompileConfig() { return mCompile; };
 		inline TestConfig getTestConfig() { return mTest; };
 		inline ProgramConfig getProgramConfig() { return mProgram; };
+		inline std::vector<Process*> getProcesses() const { return processes; };
+		void restartProcesses();
 };

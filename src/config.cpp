@@ -41,6 +41,7 @@
 #include <cstdio>
 #include <stdexcept>
 #include "util.hpp"
+#include "log.hpp"
 
 Config::Config() :
 	mWatch(),
@@ -63,20 +64,26 @@ Config::Config(std::istream& file) :
 
 Config::~Config()
 {
+	size_t i;
 	if(mCompile.command != NULL) {
-		if(mCompile.command[0] != NULL)
-			delete [] mCompile.command[0];
+		for(i = 0; mCompile.command[i]; i++)
+			delete [] mCompile.command[i];
 		delete [] mCompile.command;
 	}
 	if(mTest.command != NULL) {
-		if(mTest.command[0] != NULL)
-			delete [] mTest.command[0];
+		for(i = 0; mTest.command[i]; i++)
+			delete [] mTest.command[i];
 		delete [] mTest.command;
 	}
 	if(mProgram.command != NULL) {
-		if(mProgram.command[0] != NULL)
-			delete [] mProgram.command[0];
+		for(i = 0; mProgram.command[i]; i++)
+			delete [] mProgram.command[i];
 		delete [] mProgram.command;
+	}
+	for(Process* proc : processes)
+	{
+		if(proc)
+			delete proc;
 	}
 }
 
@@ -102,7 +109,7 @@ void Config::parseConfig(std::istream& file)
 	// Tester
 	for (YAML::const_iterator it=config.begin();it!=config.end();++it) {
 		assert(it->second.Type() == YAML::NodeType::Map);
-		//std::cout << it->first << '-' << it->second << '\n';
+		//Logger::getLogger()->log(DEBUG, "%s - %s\n", it->first.as<std::string>().c_str(), it->second.as<std::string>().c_str());
 		std::string key = Util::lowercase_r(it->first.as<std::string>());
 		if(key == "watch")
 		{
@@ -111,17 +118,26 @@ void Config::parseConfig(std::istream& file)
 		else if(key == "program")
 		{
 			this->parseCommand(it->second, mProgram);
+			if(mProgram.command && mProgram.enabled)
+				processes.push_back(new Process(mProgram.command, true));
 		}
 		else if(key == "test")
 		{
 			this->parseCommand(it->second, mTest);
+			if(mTest.command && mTest.enabled)
+				processes.push_back(new Process(mTest.command, true));
 		}
 		else if(key == "compile")
 		{
 			this->parseCommand(it->second, mCompile);
+			if(mCompile.command && mCompile.enabled)
+				processes.push_back(new Process(mCompile.command, true));
 		}
 		else
+		{
 			std::cerr << "Found an error! -" << key << '\n';
+			throw std::runtime_error("Found a config error!");
+		}
 	}
 }
 
@@ -139,6 +155,9 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 			{
 				if(value.IsScalar())
 				{
+					Logger::getLogger()->log(DEBUG, "Proc: %s", value.as<std::string>().c_str());
+					config.command = Util::parseCommand(value.as<std::string>());
+#if 0
 					// TODO: We need to take quotes from the user and send them all as
 					// a single argument instead of multiple arguments.
 					std::string cnfval = value.as<std::string>();
@@ -164,6 +183,7 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 							}
 						}
 					}
+#endif
 				}
 			}
 			else if( key == "enabled" ) {
@@ -175,14 +195,27 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 	//	std::cout << "==" << config.command[i] << '\n';
 	//}
 }
+
+void Config::restartProcesses()
+{
+	for(Process* proc : processes)
+	{
+		if(proc->kill())
+		if(proc != processes.back())
+			proc->runAndWait();
+		else
+			proc->run();
+	}
+}
+
 void Config::parseWatcher(const YAML::Node& node)
 {
+	size_t asterisk_count;
 	if(node.size() >= 1 && node.IsMap())
 		for (YAML::const_iterator iter=node.begin();iter!=node.end();++iter) {
 			std::string key = iter->first.as<std::string>();
 			YAML::Node value = iter->second;
 			Util::lowercase(key);
-			//std::cout << key << std::endl;
 			if(key == "filter")
 			{
 				if(!value.IsSequence())
@@ -191,8 +224,15 @@ void Config::parseWatcher(const YAML::Node& node)
 						filter_iter!=value.end();
 						++filter_iter)
 				{
-					//std::cout << "Filter: " << filter_iter->as<std::string>() << '\n';
-					mWatch.filters.push_back(filter_iter->as<std::string>());
+					asterisk_count = 0;
+					std::string val = filter_iter->as<std::string>();
+					for(size_t i = 0; i < val.length(); i++)
+						if(val[i] == '*')
+							asterisk_count++;
+					Logger::getLogger()->log(DEBUG, "Filter: %s", val.c_str());
+					if(asterisk_count > 1)
+						throw std::runtime_error("Could not open file");
+					mWatch.filters.push_back(val);
 				}
 			}
 			else if(key == "include")
@@ -205,13 +245,13 @@ void Config::parseWatcher(const YAML::Node& node)
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						//std::cout << "Include: " << filter_iter->as<std::string>() << '\n';
+						Logger::getLogger()->log(DEBUG, "Include: %s", filter_iter->as<std::string>().c_str());
 						mWatch.include.push_back(filter_iter->as<std::string>());
 					}
 				}
 				else if(value.IsScalar())
 				{
-					//std::cout << "Include: " << value.as<std::string>() << '\n';
+					Logger::getLogger()->log(DEBUG, "Include: %s", value.as<std::string>().c_str());
 					mWatch.include.push_back(value.as<std::string>());
 				}
 			}
@@ -225,18 +265,18 @@ void Config::parseWatcher(const YAML::Node& node)
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						//std::cout << "Exclude: " << filter_iter->as<std::string>() << '\n';
+						Logger::getLogger()->log(DEBUG, "Exclude: %s", filter_iter->as<std::string>().c_str());
 						mWatch.exclude.push_back(filter_iter->as<std::string>());
 					}
 				}
 				else if(value.IsScalar())
 				{
-					//std::cout << "Exclude: " << value.as<std::string>() << '\n';
+					Logger::getLogger()->log(DEBUG, "Exclude: %s", value.as<std::string>().c_str());
 					mWatch.exclude.push_back(value.as<std::string>());
 				}
 			}
 			else
-				std::cout << "Value: " << value.as<std::string>() << '\n';
+				Logger::getLogger()->log(DEBUG, "Value: %s\n", value.as<std::string>().c_str());
 		}
 }
 

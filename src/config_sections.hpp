@@ -5,9 +5,13 @@ the fact that it needs to be included multiple times.
 #ifndef CONFIG_SECTION
 	#error "CONFIG_SECTION macro hasn't been defined!"
 #endif
-CONFIG_SECTION(Watcher)
-CONFIG_SECTION(Compiler)
-CONFIG_SECTION(Tester)
+
+#ifndef COMPILE_STEP_POS
+#define COMPILE_STEP_POS 0
+#endif
+CONFIG_SECTION(Watch)
+CONFIG_SECTION(Compile)
+CONFIG_SECTION(Test)
 //CONFIG_SECTION(Coverage)
 //CONFIG_SECTION(BrowserRefresher)
-CONFIG_SECTION(Runner)
+CONFIG_SECTION(Program)

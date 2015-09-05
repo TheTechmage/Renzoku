@@ -25,6 +25,8 @@
 
 size_t strarrlen(char** str) {
 	size_t i = 0;
+	if(!str)
+		return 0;
 	while(str[++i]) {}
 	return i;
 }
@@ -45,7 +47,7 @@ TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 		"  Enabled: no\n"
 		//"Coverage:\n"
 		"program:\n"
-		"  command: ./bin/program -h\n"
+		"  command: ./bin/program --help\n"
 		"  Enabled: yes\n"
 		;
 

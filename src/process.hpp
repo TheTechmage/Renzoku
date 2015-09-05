@@ -43,12 +43,14 @@ class Process
 	private:
 		pid_t mProc;
 		bool mSearchInPath;
+		bool mGeneratedCommand;
 		char** mCommand;
 	public:
 		~Process();
-		Process(std::string &command, bool in_path);
+		Process(const std::string &command, bool in_path);
+		Process(char** command, bool in_path);
 		bool run();
 		bool runAndWait();
 		bool kill();
-		int status();
+		int status() const;
 };

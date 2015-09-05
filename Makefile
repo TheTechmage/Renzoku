@@ -4,7 +4,7 @@ CXXFLAGS+= -Wall -g -Isrc/ -lyaml-cpp
 DEPS=
 BIN_DIR = bin
 OBJ_DIR = obj
-EXECUTABLE = builder
+EXECUTABLE = renzoku
 TEST_EXECUTABLE = TestCode
 
 SOURCES:=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp watcher.cpp
