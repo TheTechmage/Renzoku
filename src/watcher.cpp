@@ -58,6 +58,22 @@ void Watcher::removeWatch(std::string dir)
 void Watcher::watchFileType(std::string ft)
 {
 }
+
+bool Watcher::filterName(char* name)
+{
+	for(auto filter : mFiletypes) {
+		if(Util::ends_with(name, filter.c_str()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Watcher::rebuild() {
+	return true;
+}
+
 void Watcher::listen()
 {
 }

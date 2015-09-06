@@ -46,6 +46,8 @@ class Watcher {
 		void watchDirectory();
 		void removeWatch(std::string);
 		void recurse(std::string);
+		bool filterName(char* name);
+		bool rebuild();
 	public:
 		Watcher(std::string, bool recursive);
 		void watchFileType(std::string);
