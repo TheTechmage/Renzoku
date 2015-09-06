@@ -201,10 +201,23 @@ void Config::restartProcesses()
 	for(Process* proc : processes)
 	{
 		if(proc->kill())
-		if(proc != processes.back())
-			proc->runAndWait();
-		else
-			proc->run();
+		{
+			if(proc != processes.back())
+			{
+				if(proc->runAndWait())
+				{
+					Logger::getLogger()->log(SUCCESS, "Successfully ran command");
+				}
+				else
+				{
+					Logger::getLogger()->log(ERROR, "A command failed to run :(");
+				}
+			}
+			else
+			{
+				proc->run();
+			}
+		}
 	}
 }
 

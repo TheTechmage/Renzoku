@@ -90,7 +90,7 @@ void Watcher::listen()
 	if( length <= 0 )
 		Logger::getLogger()->logCError("read");
 
-	Logger::getLogger()->log(DEBUG, "File %s!%d!", mBuffer,length);
+	Logger::getLogger()->log(DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
 	while( i < length ) {
 		struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
 		Logger::getLogger()->log(DEBUG, "File %s -> 0x%x!", event->name, event->mask);
@@ -101,7 +101,7 @@ void Watcher::listen()
 			for(auto str : mConfig.getWatchConfig().filters)
 			{
 				if(Util::strMatch(str, std::string(event->name))) {
-					printf("\033[0;32m=> File %s was modified!\033[0m", event->name);
+					Logger::getLogger()->log(INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
 					//Logger::getLogger()->log(DEBUG, "%ju", timer);
 					//Logger::getLogger()->log(DEBUG, "%ju", timer+5);
 					//Logger::getLogger()->log(DEBUG, "%ju", time(0));
@@ -123,7 +123,12 @@ void Watcher::listen()
 
 bool Watcher::rebuild()
 {
-	return mBuilder->runAndWait();
+	bool status = mBuilder->runAndWait();
+	if(status)
+		Logger::getLogger()->log(SUCCESS, "Successfully rebuilt project");
+	else
+		Logger::getLogger()->log(ERROR, "Project failed to rebuild");
+	return status;
 }
 
 void Watcher::restartProgram()
