@@ -54,7 +54,11 @@ void Watcher::recurse(std::string maindir)
 }
 void Watcher::removeWatch(std::string dir)
 {
+//killprog(progpid);
+//inotify_rm_watch(fd, wd);
+//close(fd);
 }
+
 void Watcher::watchFileType(std::string ft)
 {
 }
@@ -76,6 +80,47 @@ bool Watcher::rebuild() {
 
 void Watcher::listen()
 {
+	int length;
+	mTimer = time(0)-15;
+	struct tm timediff = {0};
+	struct inotify_event *event;
+	length = read( mINotify, mBuffer, EVENT_BUF_LEN);
+
+	if( length <= 0 )
+		perror("read");
+
+	//printf("File %s!%d!\n", buffer,length);
+	for( size_t i = 0; length < 0; i += EVENT_SIZE + event->len )
+	{
+		event = ( struct inotify_event * ) &mBuffer[i];
+		printf("File %s -> 0x%x!\n", event->name, event->mask);
+		if( event->len )
+		{
+			if(event->mask & IN_MODIFY &&!(event->mask & IN_ISDIR))
+			{
+				if(filterName(event->name))
+				{
+					printf("\033[0;32m=> File %s was modified!\033[0m\n", event->name);
+					//printf("%ju\n", timer);
+					//printf("%ju\n", timer+5);
+					//printf("%ju\n", time(0));
+					timediff = *localtime(&mTimer);
+					timediff.tm_sec += 5;
+					if(mktime(&timediff) <= time(0))
+					{
+						if(!rebuild())
+						{
+							//printf("%ju\n", mktime(&timediff));
+							mTimer = time(0);
+							//if(killprog(progpid))
+							//	progpid = runprog();
+						}
+					}
+				}
+			}
+		}
+		i += EVENT_SIZE + event->len;
+	}
 }
 
 #ifdef DEBUG

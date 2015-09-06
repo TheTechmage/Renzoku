@@ -55,7 +55,7 @@ namespace Util
 		return strncmp(str+lenstr - lensuffix, suffix, lensuffix) == 0;
 	}
 
-	DirList listDir(std::string path, FileType ft) {
+	DirList listDir(const std::string& path, FileType ft) {
 		struct dirent *entry;
 		struct stat st;
 		DIR *dirptr;

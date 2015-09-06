@@ -43,6 +43,9 @@ class Watcher {
 		std::vector<int> mFDs;
 		bool mRecursive;
 		int mINotify;
+		char mBuffer[EVENT_BUF_LEN];
+		time_t mTimer;
+
 		void watchDirectory();
 		void removeWatch(std::string);
 		void recurse(std::string);

@@ -15,6 +15,6 @@ namespace Util
 	void lowercase(std::string&);
 	std::string lowercase_r(const std::string&);
 	bool ends_with(const char* str, const char* suffix);
-	DirList listDir(std::string path, FileType ft);
+	DirList listDir(const std::string& path, FileType ft);
 }
 
