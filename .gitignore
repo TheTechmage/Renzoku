@@ -1,8 +1,9 @@
 *.swp
 *.swo
 *.o
-builder
-test
+renzoku
 a.out
+bin
+coverage
 LICENSE.new
 minimalraw.log
