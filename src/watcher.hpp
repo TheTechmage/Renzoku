@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/inotify.h>
+#include <sys/select.h>
 
 #include <string>
 #include <vector>
@@ -42,6 +43,7 @@
 
 class Watcher {
 	private:
+		iLogger* logger;
 		std::string mDirectory;
 		bool mRecursive;
 		std::vector<std::string> mFiletypes;
@@ -51,7 +53,8 @@ class Watcher {
 		int mINotify;
 		time_t mTimer;
 		Process* mBuilder;
-		iLogger* logger;
+		fd_set mReadFDs;
+		struct timeval mTimeout;
 
 		void watchDirectory();
 		void removeWatch(std::string);

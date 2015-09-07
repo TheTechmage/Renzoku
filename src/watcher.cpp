@@ -23,15 +23,21 @@
 #include "log.hpp"
 
 Watcher::Watcher(iLogger* logger, std::string dir, Config& conf , bool recursive) :
+	logger(logger),
 	mDirectory(dir),
 	mRecursive(recursive),
 	mConfig(conf),
 	mTimer(time(0)-15),
-	mBuilder(conf.getProcesses()[COMPILE_STEP_POS]),
-	logger(logger)
+	mBuilder(conf.getProcesses()[COMPILE_STEP_POS])
 {
 	mINotify = inotify_init();
 	watchDirectory();
+
+	// Setup select() call
+	FD_ZERO(&mReadFDs);
+	FD_SET(mINotify, &mReadFDs);
+	mTimeout.tv_sec = 1;
+	mTimeout.tv_usec = 0;
 }
 
 Watcher::~Watcher()
@@ -84,41 +90,48 @@ void Watcher::watchFileType(std::string ft)
 }
 void Watcher::listen()
 {
-	int length, i;
-	struct tm timediff = {0};
-	length = read( mINotify, mBuffer, EVENT_BUF_LEN);
-	i = 0;
-	if( length <= 0 )
-		LOG_ERROR(logger, "read");
+	int selval = select(mINotify+1, &mReadFDs, NULL, NULL, &mTimeout);
+	if(selval == 1) {
+		int length, i;
+		struct tm timediff = {0};
+		length = read( mINotify, mBuffer, EVENT_BUF_LEN);
+		i = 0;
+		if( length <= 0 )
+			LOG_ERROR(logger, "read");
 
-	LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
-	while( i < length ) {
-		struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
-		LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
-		if( event->len &&
-				(event->mask & IN_MODIFY) &&
-				(! (event->mask & IN_ISDIR))
-			){
-			for(auto str : mConfig.getWatchConfig().filters)
-			{
-				if(Util::strMatch(str, std::string(event->name))) {
-					LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
-					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
-					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
-					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
-					timediff = *localtime(&mTimer);
-					timediff.tm_sec += 5;
-					if(mktime(&timediff) <= time(0)) {
-						if(this->rebuild()) {
-							LOG(logger, DEBUG, "%ju", mktime(&timediff));
-							mTimer = time(0);
-							this->restartProgram();
+		LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
+		while( i < length ) {
+			struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
+			LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+			if( event->len &&
+					(event->mask & IN_MODIFY) &&
+					(! (event->mask & IN_ISDIR))
+				){
+				for(auto str : mConfig.getWatchConfig().filters)
+				{
+					if(Util::strMatch(str, std::string(event->name))) {
+						LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
+						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
+						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
+						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
+						timediff = *localtime(&mTimer);
+						timediff.tm_sec += 5;
+						if(mktime(&timediff) <= time(0)) {
+							if(this->rebuild()) {
+								LOG(logger, DEBUG, "%ju", mktime(&timediff));
+								mTimer = time(0);
+								this->restartProgram();
+							}
 						}
 					}
 				}
 			}
+			i += EVENT_SIZE + event->len;
 		}
-		i += EVENT_SIZE + event->len;
+	} else if(selval < 0) {
+		LOG_ERROR(logger, "select");
+	} else {
+		// Timout reached, nothing to read!
 	}
 }
 
