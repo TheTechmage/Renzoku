@@ -43,19 +43,21 @@
 #include <cstring>
 #include <sys/wait.h>
 
-Process::Process(const std::string &command, bool in_path) :
+Process::Process(iLogger* logger, const std::string &command, bool in_path) :
+	mProc(0),
 	mSearchInPath(in_path),
-	mProc(NULL),
-	mGeneratedCommand(true)
+	mGeneratedCommand(true),
+	logger(logger)
 {
 	mCommand = Util::parseCommand(command);
 }
 
-Process::Process(char** command, bool in_path) :
+Process::Process(iLogger* logger, char** command, bool in_path) :
+	mProc(0),
 	mSearchInPath(in_path),
-	mProc(NULL),
+	mGeneratedCommand(false),
 	mCommand(command),
-	mGeneratedCommand(false)
+	logger(logger)
 {
 }
 
@@ -75,14 +77,14 @@ bool Process::run()
 	mProc = fork();
 	if(mProc == -1)
 	{
-		Logger::getLogger()->log(ERROR, "Failed to launch fork!");
-		Logger::getLogger()->logCError("fork");
+		LOG(logger, ERROR, "Failed to launch fork!");
+		LOG_ERROR(logger, "fork");
 		//perror("fork");
 		return false;
 	}
 	else if(mProc == 0)
 	{
-		Logger::getLogger()->log(DEBUG, "In child process.");
+		LOG(logger, DEBUG, "In child process.");
 		size_t size = 0, i = 1;
 		while(mCommand[i] != NULL)
 		{
@@ -94,34 +96,34 @@ bool Process::run()
 		args_string[0] = '\0';
 		for(size_t i2 = 1; mCommand[i2] != NULL; i2++)
 			strcat(args_string, mCommand[i2]);
-		Logger::getLogger()->log(DEBUG, "running command %s with %s arguments", mCommand[0], args_string);
+		LOG(logger, DEBUG, "running command %s with %s arguments", mCommand[0], args_string);
 		//delete args_string;
 		delete [] args_string;
 		if(mSearchInPath)
 			execvp(mCommand[0], (char**)mCommand);
 		else
 			execv(mCommand[0], (char**)mCommand);
-		Logger::getLogger()->log(ERROR, "Failed to run command!");
+		LOG(logger, ERROR, "Failed to run command!");
 		exit(1);
 	}
 	else
 	{
-		Logger::getLogger()->log(DEBUG, "The child has a pid of %d", mProc);
+		LOG(logger, DEBUG, "The child has a pid of %d", mProc);
 		usleep(10);
 		int status = 0;
 		pid_t pid = waitpid(mProc, &status, WNOHANG);
 		if(pid < 0)
-			Logger::getLogger()->logCError("waitpid");
+			LOG_ERROR(logger, "waitpid");
 			//perror("waitpid");
 		if(pid > 0 && status != 0)
 		{
-			Logger::getLogger()->log(ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
+			LOG(logger, ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
 			return false;
 		}
 		return true;
 	}
-		//Logger::getLogger()->log(DEBUG, "");
-		//Logger::getLogger()->log(DEBUG, "");
+		//Logger::getLogger()->LOG(logger, DEBUG, "");
+		//Logger::getLogger()->LOG(logger, DEBUG, "");
 }
 bool Process::runAndWait()
 {
@@ -130,10 +132,10 @@ bool Process::runAndWait()
 	int status = 0;
 	pid_t pid = waitpid(mProc, &status, 0);
 	if(pid < 0)
-		Logger::getLogger()->logCError("waitpid");
+		LOG_ERROR(logger, "waitpid");
 	if(pid > 0 && status != 0)
 	{
-		Logger::getLogger()->log(ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
+		LOG(logger, ERROR, "An error has occured while attempting to run: %s", mCommand[0]);
 		return false;
 	}
 	return true;
@@ -144,15 +146,15 @@ bool Process::kill()
 		return true;
 	if((!::kill(mProc, 0)) && ::kill(mProc, SIGTERM))
 	{
-		Logger::getLogger()->logCError("kill");
+		LOG_ERROR(logger, "kill");
 		return false;
 	}
 	int status = 0;
 	pid_t pid = waitpid(mProc, &status, 0);
 	if(pid < 0)
-		Logger::getLogger()->logCError("waitpid");
+		LOG_ERROR(logger, "waitpid");
 	if(status != 0)
-		Logger::getLogger()->log(SUCCESS, "Process [%d] exited with %d", mProc, status);
+		LOG(logger, SUCCESS, "Process [%d] exited with %d", mProc, status);
 	return true;
 }
 int Process::status() const

@@ -22,12 +22,13 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Watcher::Watcher(std::string dir, Config& conf , bool recursive) :
+Watcher::Watcher(iLogger* logger, std::string dir, Config& conf , bool recursive) :
 	mDirectory(dir),
 	mRecursive(recursive),
 	mConfig(conf),
 	mTimer(time(0)-15),
-	mBuilder(conf.getProcesses()[COMPILE_STEP_POS])
+	mBuilder(conf.getProcesses()[COMPILE_STEP_POS]),
+	logger(logger)
 {
 	mINotify = inotify_init();
 	watchDirectory();
@@ -88,12 +89,12 @@ void Watcher::listen()
 	length = read( mINotify, mBuffer, EVENT_BUF_LEN);
 	i = 0;
 	if( length <= 0 )
-		Logger::getLogger()->logCError("read");
+		LOG_ERROR(logger, "read");
 
-	Logger::getLogger()->log(DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
+	LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
 	while( i < length ) {
 		struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
-		Logger::getLogger()->log(DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+		LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
 		if( event->len &&
 			(event->mask & IN_MODIFY) &&
 			(! (event->mask & IN_ISDIR))
@@ -101,15 +102,15 @@ void Watcher::listen()
 			for(auto str : mConfig.getWatchConfig().filters)
 			{
 				if(Util::strMatch(str, std::string(event->name))) {
-					Logger::getLogger()->log(INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
-					//Logger::getLogger()->log(DEBUG, "%ju", timer);
-					//Logger::getLogger()->log(DEBUG, "%ju", timer+5);
-					//Logger::getLogger()->log(DEBUG, "%ju", time(0));
+					LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
+					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
+					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
+					//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
 					timediff = *localtime(&mTimer);
 					timediff.tm_sec += 5;
 					if(mktime(&timediff) <= time(0)) {
 						if(this->rebuild()) {
-							Logger::getLogger()->log(DEBUG, "%ju", mktime(&timediff));
+							LOG(logger, DEBUG, "%ju", mktime(&timediff));
 							mTimer = time(0);
 							this->restartProgram();
 						}
@@ -125,9 +126,9 @@ bool Watcher::rebuild()
 {
 	bool status = mBuilder->runAndWait();
 	if(status)
-		Logger::getLogger()->log(SUCCESS, "Successfully rebuilt project");
+		LOG(logger, SUCCESS, "Successfully rebuilt project");
 	else
-		Logger::getLogger()->log(ERROR, "Project failed to rebuild");
+		LOG(logger, ERROR, "Project failed to rebuild");
 	return status;
 }
 

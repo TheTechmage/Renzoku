@@ -36,97 +36,84 @@
  */
 #include "log.hpp"
 #include <cstdarg>
+#include <iostream>
 #include <string>
 #include <cstring>
+#include <cerrno>
+#include <cstdarg>
+#include <exception>
 
-std::string LogColors[] = {
-	"\033[0m",
-	"\033[1;30m",
-	"\033[0;31m",
-	"\033[0;32m",
-	"\033[0;33m"
-};
-enum COLORS {
-	RESET,
-	GREY,
-	RED,
-	GREEN,
-	YELLOW
-};
 
-Logger* Logger::mLogger = nullptr;
-Logger* Logger::getLogger()
+iLogger::iLogger() :
+		colors(false)
 {
-	if (mLogger == NULL)
-		mLogger = new Logger;
-	return mLogger;
-}
-Logger* Logger::removeLogger()
-{
-	if(!mLogger)
-		return mLogger;
-	mLogger->log(DEBUG, "Removing ze logger!");
-	Logger* mylogger = mLogger;
-	mLogger = nullptr;
-	delete mylogger;
-	return mLogger;
 }
 
-Logger::Logger() :
-		mMethod(STDHANDLE)
+iLogger::iLogger(bool colors) :
+		colors(colors)
 {
-	this->log(DEBUG, "Starting logging service for renzoku　【れんぞく】。");
 }
 
-Logger::~Logger()
+void iLogger::startup()
 {
-	removeLogger();
+	//this->log(DEBUG, "Starting logging service for renzoku　【れんぞく】。");
 }
 
-void Logger::log(LogLevel level, std::string format, ...)
+void iLogger::shutdown()
 {
-	std::string color;
-	FILE* logpoint = stdout;
-	std::string prefix;
-	if(level < INFO)
-		return;
-	switch(level)
-	{
-		case DEBUG:
-			if(color.empty())
-				color = LogColors[GREY];
-			prefix = " -> ";
-			break;
-		case INFO:
-			if(color.empty())
-				color = LogColors[GREY];
-		case SUCCESS:
-			if(color.empty())
-				color = LogColors[GREEN];
-			prefix = "=> ";
-			break;
-		case WARNING:
-			if(color.empty())
-				color = LogColors[YELLOW];
-		case ERROR:
-		case CRITICAL:
-			prefix = "=> ";
-			if(color.empty())
-				color = LogColors[RED];
-			logpoint = stderr;
-			break;
-	}
-	va_list va;
-	va_start(va, format);
-	//fprintf(logpoint, "%s%s ", color.c_str(), prefix.c_str());
-	format = color + prefix + format + LogColors[RESET] + '\n';
-	vfprintf(logpoint, format.c_str(), va);
-	//fprintf(logpoint, "%s\n", LogColors[RESET].c_str());
-	va_end(va);
+	//this->log(DEBUG, "Removing ze logger!");
 }
 
-void Logger::logCError(std::string userMessage)
+std::string iLogger::createCErrorMessage(std::string userMessage)
 {
 	const char* message = userMessage.c_str();
-	return this->log(ERROR, "%s: %s", message, strerror(errno));
+	return this->createMessage(ERROR, "%s: %s", message, ::strerror(errno));
+}
+
+StdoutLogger::StdoutLogger() :
+		iLogger(true)
+{
+	this->startup();
+}
+
+StdoutLogger::~StdoutLogger()
+{
+	this->shutdown();
+}
+
+void StdoutLogger::print(LogLevel lvl, std::string message)
+{
+	if(lvl < WARNING)
+		std::cout << message;
+	else
+		std::cerr << message;
+}
+
+void StdoutLogger::printError(std::string message)
+{
+	std::cout << message;
+}
+
+FileLogger::FileLogger(std::string filepath) :
+		iLogger(false)
+{
+	mFile.open(filepath, std::ofstream::out | std::ofstream::app);
+	if(!mFile.good())
+		throw std::runtime_error("Failed to open log file.");
+}
+
+FileLogger::~FileLogger()
+{
+	if(mFile)
+		mFile.close();
+}
+
+void FileLogger::print(LogLevel level, std::string message)
+{
+	mFile << message;
+}
+
+void FileLogger::printError(std::string message)
+{
+	mFile << message;
 }

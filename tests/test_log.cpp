@@ -19,38 +19,41 @@
  */
 #include "log.hpp"
 #include <sstream>
+#include <ctime>
 #include "catch.hpp"
 
+
 TEST_CASE( "Testing Logging Facilities", "[Logger]" ) {
-	std::stringstream test;
-	test <<
-		"test_project {" << std::endl <<
-		"test=1," << std::endl <<
-		"	 meep = 39" << std::endl <<
-		"}" << std::endl;
+	time_t t = time(0);
+	struct tm * now = localtime( & t );
+	std::stringstream filename;
+	filename << "/tmp/renzoku_log_test" <<
+			'-' << (now->tm_year + 1900) <<
+			'-' << (now->tm_mon + 1) <<
+			'-' << now->tm_mday <<
+			/*'-' << now->tm_hour <<
+			'-' << now->tm_min <<
+			'-' << now->tm_sec <<
+			*/".log";
+	FileLogger log(filename.str());
+	iLogger* logptr = &log;
+	//iLogger* logptr = new StdoutLogger();
 
 	SECTION( "make sure that we can create a logger" )
 	{
-		REQUIRE(Logger::getLogger());
+		REQUIRE(log.is_good());
 	}
 	SECTION( "attempt to log a few messages" )
 	{
 		CHECK( true );
-		Logger::getLogger()->log(DEBUG, "testing %s", "DEBUG");
-		Logger::getLogger()->log(INFO, "testing %s", "INFO");
-		Logger::getLogger()->log(WARNING, "testing %s", "WARNING");
-		Logger::getLogger()->log(ERROR, "testing %s", "ERROR");
-		Logger::getLogger()->log(CRITICAL, "testing %s", "CRITICAL");
-		Logger::getLogger()->logCError("Testing logCError");
+		LOG(logptr, DEBUG, "testing %s", "DEBUG");
+		LOG(logptr, INFO, "testing %s", "INFO");
+		LOG(logptr, WARNING, "testing %s", "WARNING");
+		LOG(logptr, ERROR, "testing %s", "ERROR");
+		LOG(logptr, CRITICAL, "testing %s", "CRITICAL");
+		LOG_ERROR(logptr, "Testing logCError");
 	}
-	SECTION( "make sure that our logger is a singleton" )
-	{
-		REQUIRE(Logger::getLogger() == Logger::getLogger());
-	}
-	SECTION( "delete our logger" )
-	{
-		CHECK_FALSE(Logger::removeLogger());
-		CHECK(Logger::mLogger == nullptr);
-	}
+
+	//delete logptr;
 }
 

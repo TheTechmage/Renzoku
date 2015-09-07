@@ -35,6 +35,7 @@
 
 #include "config.hpp"
 #include "process.hpp"
+#include "log.hpp"
 
 #define EVENT_SIZE	( sizeof (struct inotify_event) )
 #define EVENT_BUF_LEN	( 1024 * ( EVENT_SIZE + 16 ) )
@@ -50,6 +51,8 @@ class Watcher {
 		int mINotify;
 		time_t mTimer;
 		Process* mBuilder;
+		iLogger* logger;
+
 		void watchDirectory();
 		void removeWatch(std::string);
 		void removeAllWatches();
@@ -57,7 +60,7 @@ class Watcher {
 		bool rebuild();
 		void restartProgram();
 	public:
-		Watcher(std::string, Config& conf, bool recursive);
+		Watcher(iLogger* logger, std::string, Config& conf, bool recursive);
 		~Watcher();
 		void watchFileType(std::string);
 		void listen();

@@ -36,6 +36,9 @@
  */
 #pragma once
 #include <string>
+#include <sstream>
+#include <fstream>
+#include <memory>
 
 enum LogLevel {
 	DEBUG,
@@ -50,21 +53,130 @@ enum LogMethod {
 	LOGFILE=1,
 	STDHANDLE=2
 };
-inline LogMethod operator|(LogMethod a, LogMethod b)
-{return static_cast<LogMethod>(static_cast<int>(a) | static_cast<int>(b));}
-inline LogMethod operator&(LogMethod a, LogMethod b)
-{return static_cast<LogMethod>(static_cast<int>(a) & static_cast<int>(b));}
 
-class Logger {
-	private:
-		~Logger();
-		std::string mFile;
-		LogMethod mMethod;
-		Logger();
-	public:
-		static Logger* mLogger;
-		static Logger* getLogger();
-		static Logger* removeLogger();
-		void log(LogLevel, std::string format, ...);
-		void logCError(std::string message);
+/*
+ * inline LogMethod operator|(LogMethod a, LogMethod b)
+ * {return static_cast<LogMethod>(static_cast<int>(a) | static_cast<int>(b));}
+ * inline LogMethod operator&(LogMethod a, LogMethod b)
+ * {return static_cast<LogMethod>(static_cast<int>(a) & static_cast<int>(b));}
+ */
+enum LOG_COLORS {
+	RESET,
+	GREY,
+	RED,
+	GREEN,
+	YELLOW
 };
+
+const std::string LogColors[] = {
+	"\033[0m",
+	"\033[1;30m",
+	"\033[0;31m",
+	"\033[0;32m",
+	"\033[0;33m"
+};
+
+class iLogger {
+	private:
+	protected:
+		bool colors;
+		void startup();
+		void shutdown();
+	public:
+		virtual ~iLogger() {};
+		iLogger();
+		iLogger(bool colors);
+		template<typename ... Arguments>
+		std::string createMessage(LogLevel level, std::string format, Arguments ... args)
+		{
+			std::string color;
+			std::string prefix;
+			switch(level)
+			{
+				case DEBUG:
+					if(color.empty())
+						color = LogColors[GREY];
+					prefix = " -> ";
+					break;
+				case INFO:
+					if(color.empty())
+						color = LogColors[GREY];
+				case SUCCESS:
+					if(color.empty())
+						color = LogColors[GREEN];
+					prefix = "=> ";
+					break;
+				case WARNING:
+					if(color.empty())
+						color = LogColors[YELLOW];
+				case ERROR:
+				case CRITICAL:
+					prefix = "=> ";
+					if(color.empty())
+						color = LogColors[RED];
+					break;
+			}
+			std::stringstream final_format;
+			if(colors)
+			{
+				final_format <<
+					color <<
+					prefix <<
+					format <<
+					LogColors[RESET] <<
+					std::endl;
+			} else {
+				time_t t = time(0);
+				struct tm * now = localtime( & t );
+				final_format << "[" <<
+					(now->tm_year + 1900) << '-' <<
+					(now->tm_mon + 1) << '-' <<
+					now->tm_mday << ' ' <<
+					now->tm_hour << ':' <<
+					now->tm_min << ':' <<
+					now->tm_sec << "] " <<
+					prefix <<
+					format <<
+					std::endl;
+			}
+			size_t string_size = snprintf(nullptr, 0, final_format.str().c_str(), args ...) + 1;
+			std::unique_ptr<char[]> buffer(new char[string_size ]);
+			snprintf( buffer.get(), string_size, final_format.str().c_str(), args ... );
+			return std::string( buffer.get(), buffer.get() + string_size - 1 );
+			// TODO: For windows, see note here:
+			// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+		}
+		std::string createCErrorMessage(std::string message);
+		virtual void print(LogLevel, std::string message) = 0;
+		virtual void printError(std::string message) = 0;
+};
+
+class StdoutLogger : public iLogger {
+	private:
+	public:
+		~StdoutLogger();
+		StdoutLogger();
+		void print(LogLevel, std::string message);
+		void printError(std::string message);
+};
+
+class FileLogger : public iLogger {
+	private:
+		std::ofstream mFile;
+	public:
+		~FileLogger();
+		FileLogger(std::string filepath);
+		void print(LogLevel, std::string message);
+		void printError(std::string message);
+		inline bool is_good() { return mFile.good(); }
+};
+
+
+template<typename ... Arguments>
+void LogMe(iLogger* logger, LogLevel level, std::string format, Arguments ... args)
+{
+	logger->print(level, logger->createMessage(level, format, args ...));
+}
+
+#define LOG(logger, ...) LogMe(logger, __VA_ARGS__)
+#define LOG_ERROR(logger, message) logger->printError(logger->createCErrorMessage(message))

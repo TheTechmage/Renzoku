@@ -38,6 +38,7 @@
 #include "main.hpp"
 #include "signals.hpp"
 #include "config.hpp"
+#include "log.hpp"
 #include "watcher.hpp"
 
 volatile sig_atomic_t gRunning = 1;
@@ -48,9 +49,10 @@ int main(int argc, char** argv) {
 	//signal(SIGINT, catch_int);
 	sigaction(SIGINT,&int_catcher,0);
 	//watcher();
-	Config config;
+	StdoutLogger logger;
+	Config config(&logger);
 	printf("%s\n", config.getCompileConfig().command[0]);
-	Watcher w("./", config, true);
+	Watcher w(&logger, "./", config, true);
 	while(gRunning)
 		w.listen();
 	return EXIT_SUCCESS;

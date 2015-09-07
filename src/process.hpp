@@ -35,6 +35,7 @@
  * =====================================================================================
  */
 #pragma once
+#include "log.hpp"
 #include <string>
 #include <unistd.h>
 
@@ -45,10 +46,11 @@ class Process
 		bool mSearchInPath;
 		bool mGeneratedCommand;
 		char** mCommand;
+		iLogger* logger;
 	public:
 		~Process();
-		Process(const std::string &command, bool in_path);
-		Process(char** command, bool in_path);
+		Process(iLogger*, const std::string &command, bool in_path);
+		Process(iLogger*, char** command, bool in_path);
 		bool run();
 		bool runAndWait();
 		bool kill();

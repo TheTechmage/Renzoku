@@ -21,11 +21,27 @@
 //#include "catch.hpp"
 #define CATCH_CONFIG_RUNNER
 #include "catch.hpp"
+#include <sstream>
+#include <string>
+#include <ctime>
 #include "log.hpp"
+iLogger* mainLogger;
 //#include <valgrind/memcheck.h>
 
 int main( int argc, char* const argv[] )
 {
+	time_t t = time(0);
+	struct tm * now = localtime( & t );
+	std::stringstream filename;
+	filename << "/tmp/renzoku_test" <<
+		'-' << (now->tm_year + 1900) <<
+		'-' << (now->tm_mon + 1) <<
+		'-' << now->tm_mday <<
+		/*'-' << now->tm_hour <<
+		'-' << now->tm_min <<
+		'-' << now->tm_sec <<
+		*/".log";
+	mainLogger = new FileLogger(filename.str());
   Catch::Session session;
 
   // writing to session.configData() here sets defaults
@@ -40,6 +56,6 @@ int main( int argc, char* const argv[] )
   // only do this if you know you need to
 
   returnCode = session.run();
-  Logger::getLogger()->removeLogger();
+  delete mainLogger;
 	//VALGRIND_DO_LEAK_CHECK;
 }

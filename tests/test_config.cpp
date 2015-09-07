@@ -22,6 +22,7 @@
 #include <cstring>
 #include "catch.hpp"
 #include <iostream>
+#include "globals.hpp"
 
 size_t strarrlen(char** str) {
 	size_t i = 0;
@@ -51,7 +52,7 @@ TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 		"  Enabled: yes\n"
 		;
 
-	Config cf(test);
+	Config cf(mainLogger, test);
 	//INFO("Config file: " << test);
 	INFO("Make sure that our filters are correct.");
 	REQUIRE(cf.getWatchConfig().filters.size() == 5);
@@ -77,7 +78,7 @@ TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 
 	REQUIRE(strarrlen(cf.getProgramConfig().command) == 2);
 	CHECK(strcmp(cf.getProgramConfig().command[0], "./bin/program") == 0);
-	CHECK(strcmp(cf.getProgramConfig().command[1], "-h") == 0);
+	CHECK(strcmp(cf.getProgramConfig().command[1], "--help") == 0);
 	CHECK(cf.getProgramConfig().enabled == true);
 	//for(std::vector<std::string>::const_iterator str = cf.sections.begin(); str != cf.sections.end(); ++str) {
 	//	std::cout << std::string(*str) << std::endl;

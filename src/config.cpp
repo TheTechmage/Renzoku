@@ -43,21 +43,23 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Config::Config() :
+Config::Config(iLogger *logger) :
 	mWatch(),
 	mCompile(),
 	mTest(),
-	mProgram()
+	mProgram(),
+	logger(logger)
 {
 	std::ifstream file = this->findConfig();
 	this->parseConfig(file);
 }
 
-Config::Config(std::istream& file) :
+Config::Config(iLogger *logger, std::istream& file) :
 	mWatch(),
 	mCompile(),
 	mTest(),
-	mProgram()
+	mProgram(),
+	logger(logger)
 {
 	this->parseConfig(file);
 }
@@ -109,7 +111,7 @@ void Config::parseConfig(std::istream& file)
 	// Tester
 	for (YAML::const_iterator it=config.begin();it!=config.end();++it) {
 		assert(it->second.Type() == YAML::NodeType::Map);
-		//Logger::getLogger()->log(DEBUG, "%s - %s\n", it->first.as<std::string>().c_str(), it->second.as<std::string>().c_str());
+		//Logger::getLogger()->LOG(logger, DEBUG, "%s - %s\n", it->first.as<std::string>().c_str(), it->second.as<std::string>().c_str());
 		std::string key = Util::lowercase_r(it->first.as<std::string>());
 		if(key == "watch")
 		{
@@ -119,19 +121,19 @@ void Config::parseConfig(std::istream& file)
 		{
 			this->parseCommand(it->second, mProgram);
 			if(mProgram.command && mProgram.enabled)
-				processes.push_back(new Process(mProgram.command, true));
+				processes.push_back(new Process(logger, mProgram.command, true));
 		}
 		else if(key == "test")
 		{
 			this->parseCommand(it->second, mTest);
 			if(mTest.command && mTest.enabled)
-				processes.push_back(new Process(mTest.command, true));
+				processes.push_back(new Process(logger, mTest.command, true));
 		}
 		else if(key == "compile")
 		{
 			this->parseCommand(it->second, mCompile);
 			if(mCompile.command && mCompile.enabled)
-				processes.push_back(new Process(mCompile.command, true));
+				processes.push_back(new Process(logger, mCompile.command, true));
 		}
 		else
 		{
@@ -155,7 +157,7 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 			{
 				if(value.IsScalar())
 				{
-					Logger::getLogger()->log(DEBUG, "Proc: %s", value.as<std::string>().c_str());
+					LOG(logger, DEBUG, "Proc: %s", value.as<std::string>().c_str());
 					config.command = Util::parseCommand(value.as<std::string>());
 #if 0
 					// TODO: We need to take quotes from the user and send them all as
@@ -206,11 +208,11 @@ void Config::restartProcesses()
 			{
 				if(proc->runAndWait())
 				{
-					Logger::getLogger()->log(SUCCESS, "Successfully ran command");
+					LOG(logger, SUCCESS, "Successfully ran command");
 				}
 				else
 				{
-					Logger::getLogger()->log(ERROR, "A command failed to run :(");
+					LOG(logger, ERROR, "A command failed to run :(");
 				}
 			}
 			else
@@ -242,7 +244,7 @@ void Config::parseWatcher(const YAML::Node& node)
 					for(size_t i = 0; i < val.length(); i++)
 						if(val[i] == '*')
 							asterisk_count++;
-					Logger::getLogger()->log(DEBUG, "Filter: %s", val.c_str());
+					LOG(logger, DEBUG, "Filter: %s", val.c_str());
 					if(asterisk_count > 1)
 						throw std::runtime_error("Could not open file");
 					mWatch.filters.push_back(val);
@@ -258,13 +260,13 @@ void Config::parseWatcher(const YAML::Node& node)
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						Logger::getLogger()->log(DEBUG, "Include: %s", filter_iter->as<std::string>().c_str());
+						LOG(logger, DEBUG, "Include: %s", filter_iter->as<std::string>().c_str());
 						mWatch.include.push_back(filter_iter->as<std::string>());
 					}
 				}
 				else if(value.IsScalar())
 				{
-					Logger::getLogger()->log(DEBUG, "Include: %s", value.as<std::string>().c_str());
+					LOG(logger, DEBUG, "Include: %s", value.as<std::string>().c_str());
 					mWatch.include.push_back(value.as<std::string>());
 				}
 			}
@@ -278,18 +280,18 @@ void Config::parseWatcher(const YAML::Node& node)
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						Logger::getLogger()->log(DEBUG, "Exclude: %s", filter_iter->as<std::string>().c_str());
+						LOG(logger, DEBUG, "Exclude: %s", filter_iter->as<std::string>().c_str());
 						mWatch.exclude.push_back(filter_iter->as<std::string>());
 					}
 				}
 				else if(value.IsScalar())
 				{
-					Logger::getLogger()->log(DEBUG, "Exclude: %s", value.as<std::string>().c_str());
+					LOG(logger, DEBUG, "Exclude: %s", value.as<std::string>().c_str());
 					mWatch.exclude.push_back(value.as<std::string>());
 				}
 			}
 			else
-				Logger::getLogger()->log(DEBUG, "Value: %s\n", value.as<std::string>().c_str());
+				LOG(logger, DEBUG, "Value: %s\n", value.as<std::string>().c_str());
 		}
 }
 

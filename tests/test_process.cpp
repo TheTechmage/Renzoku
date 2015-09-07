@@ -21,6 +21,7 @@
 #include "catch.hpp"
 #include <sys/stat.h>
 #include <cstring>
+#include "globals.hpp"
 
 inline bool exists_test3 (const std::string& name) {
 	// http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
@@ -38,7 +39,7 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 		std::string command = "touch ";
 		command += FILENAME;
 
-		Process p(command, true);
+		Process p(mainLogger, command, true);
 		INFO("Making sure our test file doesn't exist (After class instantiation)");
 		CHECK_FALSE(exists_test3(FILENAME));
 		p.runAndWait();
@@ -46,7 +47,7 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 		REQUIRE(exists_test3(FILENAME));
 		command = "rm ";
 		command += FILENAME;
-		Process p2(command, true);
+		Process p2(mainLogger, command, true);
 		p2.runAndWait();
 		INFO("Making sure our test file doesn't exist (Clearnup)");
 		REQUIRE_FALSE(exists_test3(FILENAME));
