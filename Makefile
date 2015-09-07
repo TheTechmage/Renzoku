@@ -1,3 +1,4 @@
+#!/usr/bin/make -f
 CC=gcc
 CFLAGS=-Isrc/ -I.
 CXXFLAGS+= -Wall -g -Isrc/ -lyaml-cpp
@@ -7,7 +8,7 @@ OBJ_DIR = obj
 EXECUTABLE = renzoku
 TEST_EXECUTABLE = TestCode
 
-SOURCES:=config.cpp main.cpp signals.cpp tokenizer.cpp log.cpp process.cpp util.cpp exceptions.cpp watcher.cpp
+SOURCES:=config.cpp main.cpp signals.cpp log.cpp process.cpp util.cpp exceptions.cpp watcher.cpp
 SOURCES:=$(SOURCES:%.cpp=src/%.cpp)
 #OBJECTS=$(SOURCES:.c=.o)
 OBJECTS=$(SOURCES:%.cpp=$(OBJ_DIR)/%.o)
@@ -24,7 +25,7 @@ $(OBJ_DIR)/%.o: %.cpp $(DEPS)
 	@mkdir -p `dirname $@`
 	$(CXX) -c -std=c++11 -o $@ $< $(CXXFLAGS)
 
-.PHONY: all clean test testv
+.PHONY: all clean test testv install uninstall
 
 all: $(BIN_DIR)/$(EXECUTABLE)
 
@@ -38,6 +39,12 @@ clean:
 build_test: $(TEST_OBJECTS)
 	@if [[ ! -d $(BIN_DIR) ]]; then mkdir -p $(BIN_DIR); fi
 	$(CXX) $(CXXFLAGS) $(TEST_OBJECTS) -o $(BIN_DIR)/$(TEST_EXECUTABLE)
+
+install:
+	install $(BIN_DIR)/$(EXECUTABLE) $(DESTDIR)/$(BIN_DIR)/$(EXECUTABLE)
+
+uninstall:
+	rm $(DESTDIR)/$(BIN_DIR)/$(EXECUTABLE)
 
 test: build_test
 	$(BIN_DIR)/$(TEST_EXECUTABLE)
