@@ -1,6 +1,6 @@
 連続  作業 (Renzoku sagyō -- Continuous Work)
 ===========================================
-[![MIT License](http://b.repl.ca/v1/License-MIT-red.png)](LICENSE)
+[![LGPL2.1 License](http://b.repl.ca/v1/License-LGPLv2.1-yellow.png)](LICENSE)
 [![CLI interface](http://b.repl.ca/v1/command-line-blue.png)](#command-line)
 This is a project that I am working on that has I needed to use while I made
 programs in C. I have found need of a utility that does what this program is
