@@ -38,24 +38,24 @@ int main( int argc, char* const argv[] )
 		'-' << (now->tm_mon + 1) <<
 		'-' << now->tm_mday <<
 		/*'-' << now->tm_hour <<
-		'-' << now->tm_min <<
-		'-' << now->tm_sec <<
-		*/".log";
-	mainLogger = new FileLogger(filename.str());
-  Catch::Session session;
+			'-' << now->tm_min <<
+			'-' << now->tm_sec <<
+			*/".log";
+		mainLogger = new FileLogger(filename.str());
+	Catch::Session session;
 
-  // writing to session.configData() here sets defaults
-  // this is the preferred way to set them
+	// writing to session.configData() here sets defaults
+	// this is the preferred way to set them
 
-  int returnCode = session.applyCommandLine( argc, argv );
-  if( returnCode != 0 ) // Indicates a command line error
-    return returnCode;
+	int returnCode = session.applyCommandLine( argc, argv );
+	if( returnCode != 0 ) // Indicates a command line error
+		return returnCode;
 
-  // writing to session.configData() or session.Config() here
-  // overrides command line args
-  // only do this if you know you need to
+	// writing to session.configData() or session.Config() here
+	// overrides command line args
+	// only do this if you know you need to
 
-  returnCode = session.run();
-  delete mainLogger;
+	returnCode = session.run();
+	delete mainLogger;
 	//VALGRIND_DO_LEAK_CHECK;
 }

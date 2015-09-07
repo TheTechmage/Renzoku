@@ -96,8 +96,8 @@ void Watcher::listen()
 		struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
 		LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
 		if( event->len &&
-			(event->mask & IN_MODIFY) &&
-			(! (event->mask & IN_ISDIR))
+				(event->mask & IN_MODIFY) &&
+				(! (event->mask & IN_ISDIR))
 			){
 			for(auto str : mConfig.getWatchConfig().filters)
 			{

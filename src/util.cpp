@@ -162,7 +162,7 @@ namespace Util
 			starts_with = true;
 		/*if(starts_with)
 			std::cout << "It does start!\n";
-		if(ends_with)
+			if(ends_with)
 			std::cout << "it does end!\n";*/
 		return starts_with && ends_with;
 	}

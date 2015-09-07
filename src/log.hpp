@@ -1,17 +1,17 @@
 /*
  * Renzoku - Re-build, re-test, and re-run a program whenever the code changes
  * Copyright (C) 2015  Colton Wolkins
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
@@ -30,7 +30,7 @@
  *       Compiler:  gcc
  *
  *         Author:  Colton Wolkins (frostyfrog), frostyfrog2@gmail.com
- *        Company:  
+ *        Company:
  *
  * =====================================================================================
  */
@@ -87,65 +87,65 @@ class iLogger {
 		iLogger();
 		iLogger(bool colors);
 		template<typename ... Arguments>
-		std::string createMessage(LogLevel level, std::string format, Arguments ... args)
-		{
-			std::string color;
-			std::string prefix;
-			switch(level)
+			std::string createMessage(LogLevel level, std::string format, Arguments ... args)
 			{
-				case DEBUG:
-					if(color.empty())
-						color = LogColors[GREY];
-					prefix = " -> ";
-					break;
-				case INFO:
-					if(color.empty())
-						color = LogColors[GREY];
-				case SUCCESS:
-					if(color.empty())
-						color = LogColors[GREEN];
-					prefix = "=> ";
-					break;
-				case WARNING:
-					if(color.empty())
-						color = LogColors[YELLOW];
-				case ERROR:
-				case CRITICAL:
-					prefix = "=> ";
-					if(color.empty())
-						color = LogColors[RED];
-					break;
+				std::string color;
+				std::string prefix;
+				switch(level)
+				{
+					case DEBUG:
+						if(color.empty())
+							color = LogColors[GREY];
+						prefix = " -> ";
+						break;
+					case INFO:
+						if(color.empty())
+							color = LogColors[GREY];
+					case SUCCESS:
+						if(color.empty())
+							color = LogColors[GREEN];
+						prefix = "=> ";
+						break;
+					case WARNING:
+						if(color.empty())
+							color = LogColors[YELLOW];
+					case ERROR:
+					case CRITICAL:
+						prefix = "=> ";
+						if(color.empty())
+							color = LogColors[RED];
+						break;
+				}
+				std::stringstream final_format;
+				if(colors)
+				{
+					final_format <<
+						color <<
+						prefix <<
+						format <<
+						LogColors[RESET] <<
+						std::endl;
+				} else {
+					time_t t = time(0);
+					struct tm * now = localtime( & t );
+					final_format << "[" <<
+						(now->tm_year + 1900) << '-' <<
+						(now->tm_mon + 1) << '-' <<
+						now->tm_mday << ' ' <<
+						now->tm_hour << ':' <<
+						now->tm_min << ':' <<
+						now->tm_sec << "] " <<
+						prefix <<
+						format <<
+						std::endl;
+				}
+				size_t string_size = snprintf(nullptr, 0, final_format.str().c_str(), args ...) + 1;
+				std::unique_ptr<char[]> buffer(new char[string_size ]);
+				snprintf( buffer.get(), string_size, final_format.str().c_str(), args ... );
+				return std::string( buffer.get(), buffer.get() + string_size - 1 );
+				// TODO: For windows, see note here:
+				// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 			}
-			std::stringstream final_format;
-			if(colors)
-			{
-				final_format <<
-					color <<
-					prefix <<
-					format <<
-					LogColors[RESET] <<
-					std::endl;
-			} else {
-				time_t t = time(0);
-				struct tm * now = localtime( & t );
-				final_format << "[" <<
-					(now->tm_year + 1900) << '-' <<
-					(now->tm_mon + 1) << '-' <<
-					now->tm_mday << ' ' <<
-					now->tm_hour << ':' <<
-					now->tm_min << ':' <<
-					now->tm_sec << "] " <<
-					prefix <<
-					format <<
-					std::endl;
-			}
-			size_t string_size = snprintf(nullptr, 0, final_format.str().c_str(), args ...) + 1;
-			std::unique_ptr<char[]> buffer(new char[string_size ]);
-			snprintf( buffer.get(), string_size, final_format.str().c_str(), args ... );
-			return std::string( buffer.get(), buffer.get() + string_size - 1 );
-			// TODO: For windows, see note here:
-			// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-		}
 		std::string createCErrorMessage(std::string message);
 		virtual void print(LogLevel, std::string message) = 0;
 		virtual void printError(std::string message) = 0;
@@ -172,7 +172,7 @@ class FileLogger : public iLogger {
 };
 
 
-template<typename ... Arguments>
+	template<typename ... Arguments>
 void LogMe(iLogger* logger, LogLevel level, std::string format, Arguments ... args)
 {
 	logger->print(level, logger->createMessage(level, format, args ...));

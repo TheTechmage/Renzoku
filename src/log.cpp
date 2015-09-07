@@ -45,12 +45,12 @@
 
 
 iLogger::iLogger() :
-		colors(false)
+	colors(false)
 {
 }
 
 iLogger::iLogger(bool colors) :
-		colors(colors)
+	colors(colors)
 {
 }
 
@@ -71,7 +71,7 @@ std::string iLogger::createCErrorMessage(std::string userMessage)
 }
 
 StdoutLogger::StdoutLogger() :
-		iLogger(true)
+	iLogger(true)
 {
 	this->startup();
 }
@@ -95,7 +95,7 @@ void StdoutLogger::printError(std::string message)
 }
 
 FileLogger::FileLogger(std::string filepath) :
-		iLogger(false)
+	iLogger(false)
 {
 	mFile.open(filepath, std::ofstream::out | std::ofstream::app);
 	if(!mFile.good())
