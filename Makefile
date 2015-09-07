@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 CC=gcc
 CFLAGS=-Isrc/ -I.
-CXXFLAGS+= -Wall -g -Isrc/ -lyaml-cpp
+CXXFLAGS+= -Wall -g -Isrc/ -Bstatic -lyaml-cpp
 DEPS=
 BIN_DIR = bin
 OBJ_DIR = obj
