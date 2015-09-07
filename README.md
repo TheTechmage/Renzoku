@@ -1,5 +1,7 @@
-連続  作業 (Renzoku sagyō -- Continuous Work) [![Build Status](https://magnum.travis-ci.com/frostyfrog/Renzoku.svg?token=yg8hiFH2mJxs3vAxuLz1)](https://magnum.travis-ci.com/frostyfrog/Renzoku)
+連続  作業 (Renzoku sagyō -- Continuous Work)
 ===========================================
+[![MIT License](http://b.repl.ca/v1/License-MIT-red.png)](LICENSE)
+[![CLI interface](http://b.repl.ca/v1/command-line-blue.png)](#command-line)
 This is a project that I am working on that has I needed to use while I made
 programs in C. I have found need of a utility that does what this program is
 supposed to do. The goal of this program is as follows:
