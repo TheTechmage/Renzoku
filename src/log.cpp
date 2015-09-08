@@ -67,7 +67,8 @@ void iLogger::shutdown()
 std::string iLogger::createCErrorMessage(std::string userMessage)
 {
 	const char* message = userMessage.c_str();
-	return this->createMessage(ERROR, "%s: %s", message, ::strerror(errno));
+	return this->createMessage(ERROR, "%s: %s (%d)", message, ::strerror(errno),
+			errno);
 }
 
 StdoutLogger::StdoutLogger() :

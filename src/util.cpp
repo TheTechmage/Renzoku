@@ -48,7 +48,6 @@ namespace Util
 		struct stat st;
 		DIR *dirptr;
 		std::vector<std::string> ret;
-		std::cout << path << '\n';
 		lstat(path.c_str(), &st);
 		if(!S_ISDIR(st.st_mode))
 			return ret;

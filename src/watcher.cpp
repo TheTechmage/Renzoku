@@ -33,11 +33,6 @@ Watcher::Watcher(iLogger* logger, std::string dir, Config& conf , bool recursive
 	mINotify = inotify_init();
 	watchDirectory();
 
-	// Setup select() call
-	FD_ZERO(&mReadFDs);
-	FD_SET(mINotify, &mReadFDs);
-	mTimeout.tv_sec = 1;
-	mTimeout.tv_usec = 0;
 }
 
 Watcher::~Watcher()
@@ -90,6 +85,11 @@ void Watcher::watchFileType(std::string ft)
 }
 void Watcher::listen()
 {
+	// Setup select() call
+	FD_ZERO(&mReadFDs);
+	FD_SET(mINotify, &mReadFDs);
+	mTimeout.tv_sec = 1;
+	mTimeout.tv_usec = 0;
 	int selval = select(mINotify+1, &mReadFDs, NULL, NULL, &mTimeout);
 	if(selval == 1) {
 		int length, i;
@@ -132,6 +132,7 @@ void Watcher::listen()
 		LOG_ERROR(logger, "select");
 	} else {
 		// Timout reached, nothing to read!
+		LOG(logger, DEBUG, "Timout reached: %d", mINotify);
 	}
 }
 

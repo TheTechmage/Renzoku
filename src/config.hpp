@@ -82,7 +82,7 @@ class Config {
 		void parseWatcher(const YAML::Node&);
 		void parseCommand(const YAML::Node&, iCommandConfig&);
 		void parseConfig(std::istream&);
-		std::ifstream findConfig();
+		void findConfig(std::ifstream&);
 	public:
 		std::vector<iConfig> sections = {
 #define CONFIG_SECTION(X) m##X,

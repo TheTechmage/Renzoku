@@ -7,6 +7,7 @@ BIN_DIR = bin
 OBJ_DIR = obj
 EXECUTABLE = renzoku
 TEST_EXECUTABLE = TestCode
+SHELL = /bin/bash
 
 SOURCES:=config.cpp main.cpp signals.cpp log.cpp process.cpp util.cpp exceptions.cpp watcher.cpp
 SOURCES:=$(SOURCES:%.cpp=src/%.cpp)

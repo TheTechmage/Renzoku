@@ -50,7 +50,8 @@ Config::Config(iLogger *logger) :
 	mProgram(),
 	logger(logger)
 {
-	std::ifstream file = this->findConfig();
+	std::ifstream file;
+	this->findConfig(file);
 	this->parseConfig(file);
 }
 
@@ -89,14 +90,13 @@ Config::~Config()
 	}
 }
 
-std::ifstream Config::findConfig()
+void Config::findConfig(std::ifstream& is)
 {
 	// TODO: file discovery like git finds .git files (including mount point)
 	// http://stackoverflow.com/questions/2337139/where-is-a-file-mounted
-	std::ifstream is(CONFIG_NAME);
+	is.open(CONFIG_NAME);
 	if(!is)
 		throw std::runtime_error("Could not open file");
-	return is;
 }
 
 void Config::parseConfig(std::istream& file)

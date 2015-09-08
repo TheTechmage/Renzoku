@@ -51,10 +51,11 @@ int main(int argc, char** argv) {
 	//watcher();
 	StdoutLogger logger;
 	Config config(&logger);
-	printf("%s\n", config.getCompileConfig().command[0]);
 	Watcher w(&logger, "./", config, true);
+
 	while(gRunning)
 		w.listen();
+
 	return EXIT_SUCCESS;
 }
 

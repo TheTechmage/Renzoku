@@ -2,6 +2,7 @@
 ===========================================
 [![LGPL2.1 License](http://b.repl.ca/v1/License-LGPLv2.1-yellow.png)](LICENSE)
 [![CLI interface](http://b.repl.ca/v1/command-line-blue.png)](#command-line)
+
 This is a project that I am working on that has I needed to use while I made
 programs in C. I have found need of a utility that does what this program is
 supposed to do. The goal of this program is as follows:
