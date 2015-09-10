@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 CC=gcc
 CFLAGS=-Isrc/ -I.
-CXXFLAGS+= -Wall -g -Isrc/ -Bstatic -lyaml-cpp
+CXXFLAGS+= -Wall -g -Isrc/ -static -lyaml-cpp -std=c++11
 DEPS=
 BIN_DIR = bin
 OBJ_DIR = obj
@@ -24,7 +24,7 @@ $(OBJ_DIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 $(OBJ_DIR)/%.o: %.cpp $(DEPS)
 	@mkdir -p `dirname $@`
-	$(CXX) -c -std=c++11 -o $@ $< $(CXXFLAGS)
+	$(CXX) -c $(CXXFLAGS) -o $@ $<
 
 .PHONY: all clean test testv install uninstall
 

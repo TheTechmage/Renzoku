@@ -7,3 +7,10 @@ bin
 coverage
 LICENSE.new
 minimalraw.log
+.deps
+config.log
+config.status
+Makefile
+tests/test-suite.log
+tests/test_runner*
+src/librenzoku.a
