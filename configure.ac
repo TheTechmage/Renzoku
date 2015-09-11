@@ -7,12 +7,18 @@ AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CXX
+AC_PROG_CXXCPP
 AC_PROG_INSTALL
+AC_LANG(C++)
 
 # Checks for libraries.
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h sys/time.h unistd.h])
+# http://lists.gnu.org/archive/html/autoconf/2003-11/msg00155.html
+#AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([yaml-cpp/yaml.h boost/shared_ptr.hpp])
+#AC_LANG_POP([C++])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
