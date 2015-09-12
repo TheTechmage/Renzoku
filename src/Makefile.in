@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -93,7 +94,8 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
-DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
+DIST_COMMON = $(srcdir)/Makefile.am $(librenzoku_a_HEADERS) \
+	$(renzoku_HEADERS) $(am__DIST_COMMON)
 mkinstalldirs = $(install_sh) -d
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
@@ -110,7 +112,8 @@ am_librenzoku_a_OBJECTS = config.$(OBJEXT) exceptions.$(OBJEXT) \
 	log.$(OBJEXT) process.$(OBJEXT) signals.$(OBJEXT) \
 	tokenizer.$(OBJEXT) util.$(OBJEXT) watcher.$(OBJEXT)
 librenzoku_a_OBJECTS = $(am_librenzoku_a_OBJECTS)
-am__installdirs = "$(DESTDIR)$(bindir)"
+am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(librenzoku_adir)" \
+	"$(DESTDIR)$(renzokudir)"
 PROGRAMS = $(bin_PROGRAMS)
 am_renzoku_OBJECTS = main.$(OBJEXT)
 renzoku_OBJECTS = $(am_renzoku_OBJECTS)
@@ -144,18 +147,6 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 SOURCES = $(librenzoku_a_SOURCES) $(renzoku_SOURCES)
 DIST_SOURCES = $(librenzoku_a_SOURCES) $(renzoku_SOURCES)
 am__can_run_installinfo = \
@@ -163,6 +154,34 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
+am__vpath_adj = case $$p in \
+    $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
+    *) f=$$p;; \
+  esac;
+am__strip_dir = f=`echo $$p | sed -e 's|^.*/||'`;
+am__install_max = 40
+am__nobase_strip_setup = \
+  srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*|]/\\\\&/g'`
+am__nobase_strip = \
+  for p in $$list; do echo "$$p"; done | sed -e "s|$$srcdirstrip/||"
+am__nobase_list = $(am__nobase_strip_setup); \
+  for p in $$list; do echo "$$p $$p"; done | \
+  sed "s| $$srcdirstrip/| |;"' / .*\//!s/ .*/ ./; s,\( .*\)/[^/]*$$,\1,' | \
+  $(AWK) 'BEGIN { files["."] = "" } { files[$$2] = files[$$2] " " $$1; \
+    if (++n[$$2] == $(am__install_max)) \
+      { print $$2, files[$$2]; n[$$2] = 0; files[$$2] = "" } } \
+    END { for (dir in files) print dir, files[dir] }'
+am__base_list = \
+  sed '$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;$$!N;s/\n/ /g' | \
+  sed '$$!N;$$!N;$$!N;$$!N;s/\n/ /g'
+am__uninstall_files_from_dir = { \
+  test -z "$$files" \
+    || { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
+    || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
+         $(am__cd) "$$dir" && rm -f $$files; }; \
+  }
+HEADERS = $(librenzoku_a_HEADERS) $(renzoku_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -191,12 +210,9 @@ AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
-CC = @CC@
-CCDEPMODE = @CCDEPMODE@
-CFLAGS = @CFLAGS@
-CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -237,7 +253,6 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
-ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -285,31 +300,32 @@ AM_LDFLAGS = -Bstatic -lyaml-cpp -Bdynamic
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 noinst_LIBRARIES = librenzoku.a
-librenzoku_a_SOURCES = \
-config.cpp \
+librenzoku_adir = $(pkglibdir)/@PACKAGE@
+librenzoku_a_HEADERS = \
 config.hpp \
 config_sections.hpp \
-exceptions.cpp \
 exceptions.hpp \
 i_configfile.hpp \
-log.cpp \
 log.hpp \
-Makefile.am \
-process.cpp \
 process.hpp \
-signals.cpp \
 signals.hpp \
-tokenizer.cpp \
 tokenizer.hpp \
-util.cpp \
 util.hpp \
-watcher.cpp \
 watcher.hpp
 
-renzoku_SOURCES = \
-main.cpp \
-main.hpp
+librenzoku_a_SOURCES = \
+config.cpp \
+exceptions.cpp \
+log.cpp \
+process.cpp \
+signals.cpp \
+tokenizer.cpp \
+util.cpp \
+watcher.cpp
 
+renzokudir = $(pkglibdir)/@PACKAGE@
+renzoku_HEADERS = main.hpp
+renzoku_SOURCES = main.cpp
 renzoku_LDADD = librenzoku.a
 all: all-am
 
@@ -428,6 +444,48 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+install-librenzoku_aHEADERS: $(librenzoku_a_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(librenzoku_a_HEADERS)'; test -n "$(librenzoku_adir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(librenzoku_adir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(librenzoku_adir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(librenzoku_adir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(librenzoku_adir)" || exit $$?; \
+	done
+
+uninstall-librenzoku_aHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(librenzoku_a_HEADERS)'; test -n "$(librenzoku_adir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(librenzoku_adir)'; $(am__uninstall_files_from_dir)
+install-renzokuHEADERS: $(renzoku_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(renzoku_HEADERS)'; test -n "$(renzokudir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(renzokudir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(renzokudir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(renzokudir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(renzokudir)" || exit $$?; \
+	done
+
+uninstall-renzokuHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(renzoku_HEADERS)'; test -n "$(renzokudir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(renzokudir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -513,9 +571,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
 installdirs:
-	for dir in "$(DESTDIR)$(bindir)"; do \
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(librenzoku_adir)" "$(DESTDIR)$(renzokudir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -571,7 +629,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-librenzoku_aHEADERS install-renzokuHEADERS
 
 install-dvi: install-dvi-am
 
@@ -616,7 +674,8 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am: uninstall-binPROGRAMS uninstall-librenzoku_aHEADERS \
+	uninstall-renzokuHEADERS
 
 .MAKE: install-am install-strip
 
@@ -627,12 +686,14 @@ uninstall-am: uninstall-binPROGRAMS
 	html-am info info-am install install-am install-binPROGRAMS \
 	install-data install-data-am install-dvi install-dvi-am \
 	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-strip \
+	install-info install-info-am install-librenzoku_aHEADERS \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-renzokuHEADERS install-strip \
 	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-binPROGRAMS
+	uninstall-am uninstall-binPROGRAMS \
+	uninstall-librenzoku_aHEADERS uninstall-renzokuHEADERS
 
 .PRECIOUS: Makefile
 

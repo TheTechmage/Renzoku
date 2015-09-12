@@ -6,30 +6,31 @@ AM_LDFLAGS = -Bstatic -lyaml-cpp -Bdynamic
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
 noinst_LIBRARIES = librenzoku.a
-librenzoku_a_SOURCES = \
-config.cpp \
+librenzoku_adir = $(pkglibdir)/@PACKAGE@
+librenzoku_a_HEADERS = \
 config.hpp \
 config_sections.hpp \
-exceptions.cpp \
 exceptions.hpp \
 i_configfile.hpp \
-log.cpp \
 log.hpp \
-Makefile.am \
-process.cpp \
 process.hpp \
-signals.cpp \
 signals.hpp \
-tokenizer.cpp \
 tokenizer.hpp \
-util.cpp \
 util.hpp \
-watcher.cpp \
 watcher.hpp
+librenzoku_a_SOURCES = \
+config.cpp \
+exceptions.cpp \
+log.cpp \
+process.cpp \
+signals.cpp \
+tokenizer.cpp \
+util.cpp \
+watcher.cpp
 
 
 bin_PROGRAMS = renzoku
-renzoku_SOURCES = \
-main.cpp \
-main.hpp
+renzokudir = $(pkglibdir)/@PACKAGE@
+renzoku_HEADERS = main.hpp
+renzoku_SOURCES = main.cpp
 renzoku_LDADD = librenzoku.a
