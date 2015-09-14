@@ -7,30 +7,37 @@ AM_LDFLAGS = -Bstatic -lyaml-cpp -Bdynamic
 # the previous manual Makefile
 noinst_LIBRARIES = librenzoku.a
 librenzoku_adir = $(pkglibdir)/@PACKAGE@
-librenzoku_a_HEADERS = \
-config.hpp \
-config_sections.hpp \
-exceptions.hpp \
-i_configfile.hpp \
-log.hpp \
-process.hpp \
-signals.hpp \
-tokenizer.hpp \
-util.hpp \
-watcher.hpp
+#librenzoku_a_HEADERS = \
+#											 exceptions.hpp \
+#											 log.hpp \
+#											 process.hpp \
+#											 signals.hpp \
+#											 util.hpp \
+#											 watcher.hpp
 librenzoku_a_SOURCES = \
-config.cpp \
-exceptions.cpp \
-log.cpp \
-process.cpp \
-signals.cpp \
-tokenizer.cpp \
-util.cpp \
-watcher.cpp
+											 config.cpp \
+											 config.hpp \
+											 config_sections.hpp \
+											 exceptions.cpp \
+											 exceptions.hpp \
+											 i_configfile.hpp \
+											 log.cpp \
+											 log.hpp \
+											 process.cpp \
+											 process.hpp \
+											 signals.cpp \
+											 signals.hpp \
+											 tokenizer.cpp \
+											 tokenizer.hpp \
+											 util.cpp \
+											 util.hpp \
+											 watcher.cpp \
+											 watcher.hpp
 
 
 bin_PROGRAMS = renzoku
 renzokudir = $(pkglibdir)/@PACKAGE@
-renzoku_HEADERS = main.hpp
-renzoku_SOURCES = main.cpp
 renzoku_LDADD = librenzoku.a
+renzoku_SOURCES = \
+									main.hpp \
+									main.cpp

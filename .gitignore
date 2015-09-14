@@ -1,16 +1,29 @@
-*.swp
-*.swo
-*.o
-renzoku
+# Binaries
 a.out
 bin
-coverage
-LICENSE.new
-minimalraw.log
+renzoku
+
+# Generated files
+*.in
+*.o
 .deps
+Makefile
+aclocal.m4
+autom4te.cache/
 config.log
 config.status
-Makefile
+configure
+depcomp
+install-sh
+minimalraw.log
+missing
+src/librenzoku.a
+test-driver
 tests/test-suite.log
 tests/test_runner*
-src/librenzoku.a
+
+# Misc
+*.swo
+*.swp
+LICENSE.new
+coverage
