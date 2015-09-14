@@ -1,0 +1,15 @@
+Source: renzoku
+Section: main/devel
+Priority: optional
+Maintainer: Colton Wolkins <frosty@frostyfrog.net>
+Build-Depends: debhelper (>= 9), autotools-dev, libyaml-cpp-dev (>= 0.5), libboost-dev, dh-autoreconf
+Standards-Version: 3.9.5
+Homepage: https://github.com/frostyfrog/Renzoku
+#Vcs-Git: git://github.com/frostyfrog/Renzoku.git -b dev
+#Vcs-Browser: https://github.com/frostyfrog/Renzoku/tree/dev
+
+Package: renzoku
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Continuously build and test, based on filesystem changes
+ <insert long description, indented with spaces>

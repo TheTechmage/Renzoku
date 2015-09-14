@@ -139,9 +139,12 @@ class iLogger {
 						format <<
 						std::endl;
 				}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-security"
 				size_t string_size = snprintf(nullptr, 0, final_format.str().c_str(), args ...) + 1;
 				std::unique_ptr<char[]> buffer(new char[string_size ]);
 				snprintf( buffer.get(), string_size, final_format.str().c_str(), args ... );
+#pragma GCC diagnostic pop
 				return std::string( buffer.get(), buffer.get() + string_size - 1 );
 				// TODO: For windows, see note here:
 				// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
