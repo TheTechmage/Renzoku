@@ -27,12 +27,12 @@ librenzoku_a_SOURCES = \
 											 process.hpp \
 											 signals.cpp \
 											 signals.hpp \
-											 tokenizer.cpp \
-											 tokenizer.hpp \
 											 util.cpp \
 											 util.hpp \
 											 watcher.cpp \
 											 watcher.hpp
+#											 tokenizer.cpp \
+#											 tokenizer.hpp \
 
 
 bin_PROGRAMS = renzoku
