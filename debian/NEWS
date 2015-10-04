@@ -1,0 +1,12 @@
+renzoku (0.1.1-1) unstable; urgency=low
+
+  This is the first official realease which upstream thinks is somewhat stable.
+  Between version 0.1.0 and 0.1.1, there have been changes involving how
+  subprocesses are launched and managed. In version 0.1.0, there were issues
+  where the build steps were run twice in a row. Now, in version 0.1.1, build
+  and test steps are merely run once. Besides the way processes are managed,
+  there have been a few infrastructure changes that will be exposed in a future
+  release. For example, the ability to log to a file instead of standard output
+  is possible, but it has yet to be exposed.
+
+ -- Colton Wolkins <frosty@frostyfrog.net>  Sun, 04 Oct 2015 14:13:42 -0600

@@ -1,5 +1,16 @@
-renzoku (0.1.0-1) UNRELEASED; urgency=low
+renzoku (0.1.1-1) unstable; urgency=low
 
   * Initial release of Debian package
+  * Switched logging system to use vsnprintf and safe buffers lengths
+  * Removed inotify timeout debug message
+  * Switched inotify subsystem to use select, rather than just read
+  * Removed "false positive" errors with waitpid
+  * Added a process manager class to manage spawned processes
+
+ -- Colton Wolkins <frosty@frostyfrog.net>  Sun, 04 Oct 2015 14:09:25 -0600
+
+renzoku (0.1.0-1) UNRELEASED; urgency=low
+
+  * Initial Debian package files created
 
  -- Colton Wolkins <frosty@frostyfrog.net>  Sun, 13 Sep 2015 16:27:44 -0600
