@@ -24,6 +24,7 @@
 #include <sstream>
 #include <string>
 #include <ctime>
+#include <stdio.h>
 #include "log.hpp"
 iLogger* mainLogger;
 //#include <valgrind/memcheck.h>
@@ -37,11 +38,17 @@ int main( int argc, char* const argv[] )
 		'-' << (now->tm_year + 1900) <<
 		'-' << (now->tm_mon + 1) <<
 		'-' << now->tm_mday <<
-		/*'-' << now->tm_hour <<
-			'-' << now->tm_min <<
-			'-' << now->tm_sec <<
-			*/".log";
-		mainLogger = new FileLogger(filename.str());
+		/*
+		'-' << now->tm_hour <<
+		'-' << now->tm_min <<
+		'-' << now->tm_sec <<
+		*/
+		".log";
+	{
+		FILE* f = fopen(filename.str().c_str(), "w+");
+		fclose(f);
+	}
+	mainLogger = new FileLogger(filename.str());
 	Catch::Session session;
 
 	// writing to session.configData() here sets defaults
