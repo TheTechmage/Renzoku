@@ -31,8 +31,8 @@ librenzoku_a_SOURCES = \
 											 util.hpp \
 											 watcher.cpp \
 											 watcher.hpp
-#											 tokenizer.cpp \
-#											 tokenizer.hpp \
+#											 tokenizer.cpp
+#											 tokenizer.hpp
 
 
 bin_PROGRAMS = renzoku

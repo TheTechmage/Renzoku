@@ -7,7 +7,7 @@ test_log.cpp \
 test_main.cpp \
 test_process.cpp \
 test_util.cpp
-#test_tokenizer.cpp \
+#test_tokenizer.cpp
 test_runner_LDADD = ../src/librenzoku.a
 
 TESTS = test_runner
