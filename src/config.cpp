@@ -43,11 +43,12 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Config::Config(iLogger *logger) :
+Config::Config(iLogger *logger, ProcessManager* pm) :
 	mWatch(),
 	mCompile(),
 	mTest(),
 	mProgram(),
+	procman(pm),
 	logger(logger)
 {
 	std::ifstream file;
@@ -55,11 +56,12 @@ Config::Config(iLogger *logger) :
 	this->parseConfig(file);
 }
 
-Config::Config(iLogger *logger, std::istream& file) :
+Config::Config(iLogger *logger, ProcessManager* pm, std::istream& file) :
 	mWatch(),
 	mCompile(),
 	mTest(),
 	mProgram(),
+	procman(pm),
 	logger(logger)
 {
 	this->parseConfig(file);
@@ -82,11 +84,6 @@ Config::~Config()
 		for(i = 0; mProgram.command[i]; i++)
 			delete [] mProgram.command[i];
 		delete [] mProgram.command;
-	}
-	for(Process* proc : processes)
-	{
-		if(proc)
-			delete proc;
 	}
 }
 
@@ -120,20 +117,26 @@ void Config::parseConfig(std::istream& file)
 		else if(key == "program")
 		{
 			this->parseCommand(it->second, mProgram);
+			if(procman->getProgram()) {
+				throw std::runtime_error("Program already set!");
+			}
 			if(mProgram.command && mProgram.enabled)
-				processes.push_back(new Process(logger, mProgram.command, true));
+				procman->setProgram(new Process(logger, mProgram.command, true));
 		}
 		else if(key == "test")
 		{
 			this->parseCommand(it->second, mTest);
 			if(mTest.command && mTest.enabled)
-				processes.push_back(new Process(logger, mTest.command, true));
+				procman->addProcess(new Process(logger, mTest.command, true));
 		}
 		else if(key == "compile")
 		{
 			this->parseCommand(it->second, mCompile);
+			if(procman->getBuildStep()) {
+				throw std::runtime_error("BuildStage already set!");
+			}
 			if(mCompile.command && mCompile.enabled)
-				processes.push_back(new Process(logger, mCompile.command, true));
+				procman->setBuilder(new Process(logger, mCompile.command, true));
 		}
 		else
 		{
@@ -200,27 +203,7 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 
 void Config::restartProcesses()
 {
-	for(Process* proc : processes)
-	{
-		if(proc->kill())
-		{
-			if(proc != processes.back())
-			{
-				if(proc->runAndWait())
-				{
-					LOG(logger, SUCCESS, "Successfully ran command");
-				}
-				else
-				{
-					LOG(logger, ERROR, "A command failed to run :(");
-				}
-			}
-			else
-			{
-				proc->run();
-			}
-		}
-	}
+	procman->restartAll();
 }
 
 void Config::parseWatcher(const YAML::Node& node)

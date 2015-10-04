@@ -22,13 +22,14 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Watcher::Watcher(iLogger* logger, std::string dir, Config& conf , bool recursive) :
+Watcher::Watcher(iLogger* logger, std::string dir, Config& conf, ProcessManager* pm, bool recursive) :
 	logger(logger),
 	mDirectory(dir),
 	mRecursive(recursive),
 	mConfig(conf),
 	mTimer(time(0)-15),
-	mBuilder(conf.getProcesses()[COMPILE_STEP_POS])
+	mBuilder(pm->getBuildStep()),
+	procman(pm)
 {
 	mINotify = inotify_init();
 	watchDirectory();
@@ -37,8 +38,7 @@ Watcher::Watcher(iLogger* logger, std::string dir, Config& conf , bool recursive
 
 Watcher::~Watcher()
 {
-	for(Process* proc : mConfig.getProcesses())
-		proc->kill();
+	procman->killAll();
 	this->removeAllWatches();
 	close(mINotify);
 }
@@ -132,7 +132,7 @@ void Watcher::listen()
 		LOG_ERROR(logger, "select");
 	} else {
 		// Timout reached, nothing to read!
-		LOG(logger, DEBUG, "Timout reached: %d", mINotify);
+		//LOG(logger, DEBUG, "Timout reached: %d", mINotify);
 	}
 }
 

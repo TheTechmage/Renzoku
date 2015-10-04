@@ -18,6 +18,7 @@ install-sh
 minimalraw.log
 missing
 src/librenzoku.a
+*/tags
 test-driver
 tests/test-suite.log
 tests/test_runner*

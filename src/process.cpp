@@ -93,7 +93,7 @@ bool Process::run()
 			size += strlen(mCommand[i]) + 1;
 			i++;
 		}
-		char* args_string = new char[size];
+		char* args_string = new char[size + 1];
 		//strcpy(args_string, mCommand[0]);
 		args_string[0] = '\0';
 		for(size_t i2 = 1; mCommand[i2] != NULL; i2++) {

@@ -134,9 +134,9 @@ std::string iLogger::createMessage(LogLevel level, const char* format, va_list
 			var_copy) + 1;
 	char* buffer = new char[ string_size + 10 ];
 	buffer[0] = 0;
-	char* f = new char[final_format.str().length()+1];
-	strcpy(f, final_format.str().c_str());
-	vsprintf( buffer, f, arguments );
+	//char* f = new char[final_format.str().length()+1];
+	//strcpy(f, final_format.str().c_str());
+	vsprintf( buffer, final_format.str().c_str(), arguments );
 //#pragma GCC diagnostic pop
 	std::string ret = std::string( buffer, string_size - 1 );
 	delete [] buffer;

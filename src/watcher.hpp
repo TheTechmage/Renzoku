@@ -53,6 +53,7 @@ class Watcher {
 		int mINotify;
 		time_t mTimer;
 		Process* mBuilder;
+		ProcessManager* procman;
 		fd_set mReadFDs;
 		struct timeval mTimeout;
 
@@ -63,7 +64,7 @@ class Watcher {
 		bool rebuild();
 		void restartProgram();
 	public:
-		Watcher(iLogger* logger, std::string, Config& conf, bool recursive);
+		Watcher(iLogger* logger, std::string, Config& conf, ProcessManager*, bool recursive);
 		~Watcher();
 		void watchFileType(std::string);
 		void listen();

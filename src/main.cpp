@@ -40,6 +40,7 @@
 #include "config.hpp"
 #include "log.hpp"
 #include "watcher.hpp"
+#include "procman.hpp"
 
 volatile sig_atomic_t gRunning = 1;
 
@@ -50,8 +51,9 @@ int main(int argc, char** argv) {
 	sigaction(SIGINT,&int_catcher,0);
 	//watcher();
 	StdoutLogger logger;
-	Config config(&logger);
-	Watcher w(&logger, "./", config, true);
+	ProcessManager procman(&logger);
+	Config config(&logger, &procman);
+	Watcher w(&logger, "./", config, &procman, true);
 
 	while(gRunning)
 		w.listen();

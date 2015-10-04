@@ -40,6 +40,7 @@
 #include <yaml-cpp/yaml.h>
 #include "process.hpp"
 #include "log.hpp"
+#include "procman.hpp"
 
 #define CONFIG_NAME "renzoku.conf"
 
@@ -77,7 +78,7 @@ class Config {
 #define CONFIG_SECTION(X) X##Config m##X;
 #include "config_sections.hpp"
 #undef CONFIG_SECTION
-		std::vector<Process*> processes;
+		ProcessManager* procman;
 		iLogger* logger;
 		void parseWatcher(const YAML::Node&);
 		void parseCommand(const YAML::Node&, iCommandConfig&);
@@ -89,13 +90,12 @@ class Config {
 #include "config_sections.hpp"
 #undef CONFIG_SECTION
 		};
-		Config(iLogger*);
-		Config(iLogger*, std::istream&);
+		Config(iLogger*, ProcessManager*);
+		Config(iLogger*, ProcessManager*, std::istream&);
 		~Config();
 		inline WatchConfig getWatchConfig() { return mWatch; };
 		inline CompileConfig getCompileConfig() { return mCompile; };
 		inline TestConfig getTestConfig() { return mTest; };
 		inline ProgramConfig getProgramConfig() { return mProgram; };
-		inline std::vector<Process*> getProcesses() const { return processes; };
 		void restartProcesses();
 };

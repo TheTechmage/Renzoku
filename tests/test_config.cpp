@@ -52,7 +52,8 @@ TEST_CASE( "Testing Configuration Parsing", "[Config::parse]" ) {
 		"  Enabled: yes\n"
 		;
 
-	Config cf(mainLogger, test);
+	ProcessManager pm(mainLogger);
+	Config cf(mainLogger, &pm, test);
 	//INFO("Config file: " << test);
 	INFO("Make sure that our filters are correct.");
 	REQUIRE(cf.getWatchConfig().filters.size() == 5);
