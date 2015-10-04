@@ -47,6 +47,7 @@ Process::Process(iLogger* logger, const std::string &command, bool in_path) :
 	mProc(0),
 	mSearchInPath(in_path),
 	mGeneratedCommand(true),
+	mEnabled(true),
 	logger(logger)
 {
 	mCommand = Util::parseCommand(command);
@@ -56,6 +57,7 @@ Process::Process(iLogger* logger, char** command, bool in_path) :
 	mProc(0),
 	mSearchInPath(in_path),
 	mGeneratedCommand(false),
+	mEnabled(true),
 	mCommand(command),
 	logger(logger)
 {
@@ -88,14 +90,16 @@ bool Process::run()
 		size_t size = 0, i = 1;
 		while(mCommand[i] != NULL)
 		{
-			size += strlen(mCommand[i]);
+			size += strlen(mCommand[i]) + 1;
 			i++;
 		}
-		char* args_string = new char[size + 1];
+		char* args_string = new char[size];
 		//strcpy(args_string, mCommand[0]);
 		args_string[0] = '\0';
-		for(size_t i2 = 1; mCommand[i2] != NULL; i2++)
+		for(size_t i2 = 1; mCommand[i2] != NULL; i2++) {
 			strcat(args_string, mCommand[i2]);
+			strcat(args_string, " ");
+		}
 		LOG(logger, DEBUG, "running command %s with %s arguments", mCommand[0], args_string);
 		//delete args_string;
 		delete [] args_string;
@@ -112,7 +116,7 @@ bool Process::run()
 		usleep(10);
 		int status = 0;
 		pid_t pid = waitpid(mProc, &status, WNOHANG);
-		if(pid < 0)
+		if(pid < 0 && errno != ECHILD)
 			LOG_ERROR(logger, "waitpid");
 		//perror("waitpid");
 		if(pid > 0 && status != 0)
@@ -131,7 +135,7 @@ bool Process::runAndWait()
 		return false;
 	int status = 0;
 	pid_t pid = waitpid(mProc, &status, 0);
-	if(pid < 0)
+	if(pid < 0 && errno != ECHILD)
 		LOG_ERROR(logger, "waitpid");
 	if(pid > 0 && status != 0)
 	{
@@ -151,7 +155,7 @@ bool Process::kill()
 	}
 	int status = 0;
 	pid_t pid = waitpid(mProc, &status, 0);
-	if(pid < 0)
+	if(pid < 0 && errno != ECHILD)
 		LOG_ERROR(logger, "waitpid");
 	if(status != 0)
 		LOG(logger, SUCCESS, "Process [%d] exited with %d", mProc, status);

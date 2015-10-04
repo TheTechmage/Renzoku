@@ -45,12 +45,16 @@ class Process
 		pid_t mProc;
 		bool mSearchInPath;
 		bool mGeneratedCommand;
+		bool mEnabled;
 		char** mCommand;
 		iLogger* logger;
 	public:
 		~Process();
 		Process(iLogger*, const std::string &command, bool in_path);
 		Process(iLogger*, char** command, bool in_path);
+		inline void enable() { mEnabled = true; };
+		inline void disable() { mEnabled = false; };
+		inline bool isEnabled() { return mEnabled; };
 		bool run();
 		bool runAndWait();
 		bool kill();
