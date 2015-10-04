@@ -86,69 +86,8 @@ class iLogger {
 		virtual ~iLogger() {};
 		iLogger();
 		iLogger(bool colors);
-		template<typename ... Arguments>
-			std::string createMessage(LogLevel level, std::string format, Arguments ... args)
-			{
-				std::string color;
-				std::string prefix;
-				switch(level)
-				{
-					case DEBUG:
-						if(color.empty())
-							color = LogColors[GREY];
-						prefix = " -> ";
-						break;
-					case INFO:
-						if(color.empty())
-							color = LogColors[GREY];
-					case SUCCESS:
-						if(color.empty())
-							color = LogColors[GREEN];
-						prefix = "=> ";
-						break;
-					case WARNING:
-						if(color.empty())
-							color = LogColors[YELLOW];
-					case ERROR:
-					case CRITICAL:
-						prefix = "=> ";
-						if(color.empty())
-							color = LogColors[RED];
-						break;
-				}
-				std::stringstream final_format;
-				if(colors)
-				{
-					final_format <<
-						color <<
-						prefix <<
-						format <<
-						LogColors[RESET] <<
-						std::endl;
-				} else {
-					time_t t = time(0);
-					struct tm * now = localtime( & t );
-					final_format << "[" <<
-						(now->tm_year + 1900) << '-' <<
-						(now->tm_mon + 1) << '-' <<
-						now->tm_mday << ' ' <<
-						now->tm_hour << ':' <<
-						now->tm_min << ':' <<
-						now->tm_sec << "] " <<
-						prefix <<
-						format <<
-						std::endl;
-				}
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-security"
-				size_t string_size = snprintf(nullptr, 0, final_format.str().c_str(), args ...) + 1;
-				std::unique_ptr<char[]> buffer(new char[string_size ]);
-				snprintf( buffer.get(), string_size, final_format.str().c_str(), args ... );
-#pragma GCC diagnostic pop
-				return std::string( buffer.get(), buffer.get() + string_size - 1 );
-				// TODO: For windows, see note here:
-				// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-			}
+		std::string createMessage(LogLevel level, const char* format, va_list);
+		std::string createMessage(LogLevel level, const char* format, ...);
 		std::string createCErrorMessage(std::string message);
 		virtual void print(LogLevel, std::string message) = 0;
 		virtual void printError(std::string message) = 0;
@@ -175,11 +114,7 @@ class FileLogger : public iLogger {
 };
 
 
-	template<typename ... Arguments>
-void LogMe(iLogger* logger, LogLevel level, std::string format, Arguments ... args)
-{
-	logger->print(level, logger->createMessage(level, format, args ...));
-}
+void LogMe(iLogger* logger, LogLevel level, std::string format, ...);
 
 #define LOG(logger, ...) LogMe(logger, __VA_ARGS__)
 #define LOG_ERROR(logger, message) logger->printError(logger->createCErrorMessage(message))

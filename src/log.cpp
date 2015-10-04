@@ -64,6 +64,87 @@ void iLogger::shutdown()
 	//this->log(DEBUG, "Removing ze logger!");
 }
 
+std::string iLogger::createMessage(LogLevel level, const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	std::string retval = this->createMessage(level, format, args);
+	va_end(args);
+	return retval;
+}
+
+std::string iLogger::createMessage(LogLevel level, const char* format, va_list
+		arguments)
+{
+	va_list var_copy;
+	va_copy(var_copy, arguments);
+	std::string color;
+	std::string prefix;
+	switch(level)
+	{
+		case DEBUG:
+			if(color.empty())
+				color = LogColors[GREY];
+			prefix = " -> ";
+			break;
+		case INFO:
+			if(color.empty())
+				color = LogColors[GREY];
+		case SUCCESS:
+			if(color.empty())
+				color = LogColors[GREEN];
+			prefix = "=> ";
+			break;
+		case WARNING:
+			if(color.empty())
+				color = LogColors[YELLOW];
+		case ERROR:
+		case CRITICAL:
+			prefix = "=> ";
+			if(color.empty())
+				color = LogColors[RED];
+			break;
+	}
+	std::stringstream final_format;
+	if(colors)
+	{
+		final_format <<
+			color <<
+			prefix <<
+			format <<
+			LogColors[RESET] <<
+			std::endl;
+	} else {
+		time_t t = time(0);
+		struct tm * now = localtime( & t );
+		final_format << "[" <<
+			(now->tm_year + 1900) << '-' <<
+			(now->tm_mon + 1) << '-' <<
+			now->tm_mday << ' ' <<
+			now->tm_hour << ':' <<
+			now->tm_min << ':' <<
+			now->tm_sec << "] " <<
+			prefix <<
+			format <<
+			std::endl;
+	}
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Wformat-security"
+	size_t string_size = vsnprintf(nullptr, 0, final_format.str().c_str(),
+			var_copy) + 1;
+	char* buffer = new char[ string_size + 10 ];
+	buffer[0] = 0;
+	char* f = new char[final_format.str().length()+1];
+	strcpy(f, final_format.str().c_str());
+	vsprintf( buffer, f, arguments );
+//#pragma GCC diagnostic pop
+	std::string ret = std::string( buffer, string_size - 1 );
+	delete [] buffer;
+	return ret;
+	// TODO: For windows, see note here:
+	// http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+}
+
 std::string iLogger::createCErrorMessage(std::string userMessage)
 {
 	const char* message = userMessage.c_str();
@@ -117,4 +198,12 @@ void FileLogger::print(LogLevel level, std::string message)
 void FileLogger::printError(std::string message)
 {
 	mFile << message;
+}
+
+void LogMe(iLogger* logger, LogLevel level, std::string format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	logger->print(level, logger->createMessage(level, format.c_str(), args));
+	va_end(args);
 }
