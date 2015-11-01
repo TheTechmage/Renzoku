@@ -16,9 +16,59 @@ AC_LANG(C++)
 # Checks for header files.
 AC_CHECK_HEADERS([stdint.h stdlib.h sys/time.h unistd.h])
 # http://lists.gnu.org/archive/html/autoconf/2003-11/msg00155.html
-#AC_LANG_PUSH([C++])
+AC_LANG_PUSH([C++])
 AC_CHECK_HEADERS([yaml-cpp/yaml.h boost/shared_ptr.hpp])
-#AC_LANG_POP([C++])
+
+# debug? daemon mode?
+AC_ARG_ENABLE(recursion,
+							[AS_HELP_STRING([--disable-recursion],
+															[Disable recursive directory searching])],
+							[feature_recursion=no], #replace with ac_define
+							[feature_recursion=yes])
+AC_ARG_ENABLE(log-level,
+							[AS_HELP_STRING([--enable-log-level[=level]],
+															[Specify the logging level:\
+															 debug: The most verbose level\
+															 info: A bit less verbose\
+															 warn: Warnings only\
+															 error: Errors only])],
+															[ if test "x$enableval" = "xdebug" ; then
+															 AC_DEFINE([LOGLEVEL], [debug],
+																				 [Logging set to debug level])
+															 elif test "x$enableval" = "xinfo" ; then
+															 AC_DEFINE([LOGLEVEL], [info],
+																				 [Logging set to info level])
+															 elif test "x$enableval" = "xwarn" ; then
+															 AC_DEFINE([LOGLEVEL], [warn],
+																				 [Logging set to warning level])
+															 elif test "x$enableval" = "xerror" ; then
+															 AC_DEFINE([LOGLEVEL], [error],
+																				 [Logging set to error level])
+															 else
+																 AC_MSG_FAILURE(
+																								[Invalid log level]
+																								)
+															 fi
+															 ])
+
+AC_ARG_WITH([yaml],
+						[AS_HELP_STRING([--without-yaml],
+														[Disable yaml config support])],
+						[],
+						[with_yaml=yes])
+LIBYAMLCPP=
+AS_IF([test "x$with_yaml" != xno],
+			[AC_CHECK_LIB([yaml-cpp], [main],
+										[AC_SUBST([LIBYAMLCPP], ["-lyaml-cpp"])
+										AC_DEFINE([HAVE_YAML], [1],
+															[Define if you have libyaml-cpp])
+										],
+										[AC_MSG_FAILURE(
+										 [yaml-cpp test failed (--without-yaml to disable)]
+										)],
+										[]
+										)])
+AC_LANG_POP([C++])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL
@@ -39,5 +89,5 @@ AC_PROG_RANLIB
 
 #AC_CONFIG_FILES([Makefile])
 AC_OUTPUT(Makefile src/Makefile doc/Makefile examples/Makefile man/Makefile
-					tests/Makefile)
+					tests/Makefile src/config/Makefile)
 AC_OUTPUT

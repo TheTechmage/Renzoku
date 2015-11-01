@@ -1,2 +1,2 @@
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = src doc examples man tests
+SUBDIRS = src src/config doc examples man tests

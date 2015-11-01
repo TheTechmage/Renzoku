@@ -68,10 +68,12 @@ void Watcher::recursiveWatch(std::string maindir)
 	{
 		for(std::string dir : dirs)
 		{
-			if(dir == "." || dir == "..")
+			if(dir.compare(".") == 0 || dir.compare("..") == 0)
 				continue;
+			//LOG(logger, DEBUG, "Watching %s", (maindir + '/' + dir).c_str());
 			mFDs.push_back(inotify_add_watch(mINotify, (maindir + '/' +
 							dir).c_str(), IN_MODIFY));
+			//LOG(logger, DEBUG, "%s => %s", dir.c_str(), ".");
 			this->recursiveWatch(maindir + '/' + dir);
 		}
 	}
@@ -99,10 +101,10 @@ void Watcher::listen()
 		if( length <= 0 )
 			LOG_ERROR(logger, "read");
 
-		LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
+		//LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
 		while( i < length ) {
 			struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
-			LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+			//LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
 			if( event->len &&
 					(event->mask & IN_MODIFY) &&
 					(! (event->mask & IN_ISDIR))

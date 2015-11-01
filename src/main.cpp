@@ -41,6 +41,7 @@
 #include "log.hpp"
 #include "watcher.hpp"
 #include "procman.hpp"
+#include <libconfig.h++>
 
 volatile sig_atomic_t gRunning = 1;
 
@@ -52,12 +53,20 @@ int main(int argc, char** argv) {
 	//watcher();
 	StdoutLogger logger;
 	ProcessManager procman(&logger);
-	Config config(&logger, &procman);
-	Watcher w(&logger, "./", config, &procman, true);
+	Config* config;
+	try {
+		config = new Config(&logger, &procman);
+	} catch	( const libconfig::ParseException &pex ) {
+		fprintf(stderr, "Parse error at %s:%d - %s\n", pex.getFile(),
+				pex.getLine(), pex.getError());
+		return EXIT_FAILURE;
+	}
+	Watcher w(&logger, "./", *config, &procman, true);
 
 	while(gRunning)
 		w.listen();
 
+	delete config;
 	return EXIT_SUCCESS;
 }
 

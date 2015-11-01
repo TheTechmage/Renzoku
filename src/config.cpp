@@ -98,25 +98,36 @@ void Config::findConfig(std::ifstream& is)
 
 void Config::parseConfig(std::istream& file)
 {
-	config = YAML::Load(file);
-	assert(config);
-	assert(config.Type() == YAML::NodeType::Map);
-	assert(config.IsMap());
-	assert(config["watch"]);
-	assert(config["program"]);
-	// Compiler
-	// Tester
-	for (YAML::const_iterator it=config.begin();it!=config.end();++it) {
-		assert(it->second.Type() == YAML::NodeType::Map);
+	int err;
+	size_t file_length;
+	char* file_contents = NULL;
+	file.seekg(0, file.end);
+	file_length = file.tellg();
+	file.seekg(0, file.beg);
+	file_contents = new char[file_length];
+	if(file_contents == NULL)
+		throw std::runtime_error("Failed to read config [Allocation error]");
+	file.read(file_contents, file_length);
+	err = ( (size_t)file.gcount() != file_length );
+	if(err)
+		throw std::runtime_error("Failed to read config [Failed to read all "
+				"characters]");
+	config.readString(file_contents);
+	libconfig::Setting &root = config.getRoot();
+
+	assert(config.exists("watch"));
+	assert(config.exists("program"));
+	for (auto it = root.begin(); it != root.end(); ++it) {
+		assert(it->isGroup());
 		//Logger::getLogger()->LOG(logger, DEBUG, "%s - %s\n", it->first.as<std::string>().c_str(), it->second.as<std::string>().c_str());
-		std::string key = Util::lowercase_r(it->first.as<std::string>());
+		std::string key = Util::lowercase_r(it->getName());
 		if(key == "watch")
 		{
-			this->parseWatcher(it->second);
+			this->parseWatcher(*it);
 		}
 		else if(key == "program")
 		{
-			this->parseCommand(it->second, mProgram);
+			this->parseCommand(*it, mProgram);
 			if(procman->getProgram()) {
 				throw std::runtime_error("Program already set!");
 			}
@@ -125,13 +136,13 @@ void Config::parseConfig(std::istream& file)
 		}
 		else if(key == "test")
 		{
-			this->parseCommand(it->second, mTest);
+			this->parseCommand(*it, mTest);
 			if(mTest.command && mTest.enabled)
 				procman->addProcess(new Process(logger, mTest.command, true));
 		}
 		else if(key == "compile")
 		{
-			this->parseCommand(it->second, mCompile);
+			this->parseCommand(*it, mCompile);
 			if(procman->getBuildStep()) {
 				throw std::runtime_error("BuildStage already set!");
 			}
@@ -146,22 +157,23 @@ void Config::parseConfig(std::istream& file)
 	}
 }
 
-void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
+void Config::parseCommand(const libconfig::Setting& node, iCommandConfig& config)
 {
 	//std::cerr << "Under active development!" << '\n';
 	//return;
-	if(node.size() >= 1 && node.IsMap())
-		for (YAML::const_iterator iter=node.begin();iter!=node.end();++iter) {
-			std::string key = iter->first.as<std::string>();
-			YAML::Node value = iter->second;
+	printf("%d %d %s\n", node.getLength(), node.isArray(), node.getName());
+	if(node.getLength() > 0 && node.isGroup())
+		for (auto iter = node.begin(); iter != node.end(); ++iter) {
+			std::string key = iter->getName();
+			const libconfig::Setting &value = *iter;
 			Util::lowercase(key);
 			//std::cout << key << std::endl;
 			if(key == "command")
 			{
-				if(value.IsScalar())
+				if(value.isScalar())
 				{
-					LOG(logger, DEBUG, "Proc: %s", value.as<std::string>().c_str());
-					config.command = Util::parseCommand(value.as<std::string>());
+					LOG(logger, DEBUG, "Proc: %s", (const char*)value);
+					config.command = Util::parseCommand(value);
 #if 0
 					// TODO: We need to take quotes from the user and send them all as
 					// a single argument instead of multiple arguments.
@@ -192,7 +204,7 @@ void Config::parseCommand(const YAML::Node& node, iCommandConfig& config)
 				}
 			}
 			else if( key == "enabled" ) {
-				config.enabled = value.as<bool>();
+				config.enabled = value;
 			}
 		}
 	//for(size_t i=0;config.command[i]; i++)
@@ -206,24 +218,24 @@ void Config::restartProcesses()
 	procman->restartAll();
 }
 
-void Config::parseWatcher(const YAML::Node& node)
+void Config::parseWatcher(const libconfig::Setting& node)
 {
 	size_t asterisk_count;
-	if(node.size() >= 1 && node.IsMap())
-		for (YAML::const_iterator iter=node.begin();iter!=node.end();++iter) {
-			std::string key = iter->first.as<std::string>();
-			YAML::Node value = iter->second;
+	if(node.getLength() > 0 && node.isGroup())
+		for (auto iter = node.begin(); iter != node.end(); ++iter) {
+			std::string key = iter->getName();
+			const libconfig::Setting &value = *iter;
 			Util::lowercase(key);
 			if(key == "filter")
 			{
-				if(!value.IsSequence())
-					std::cerr << "ERROR!\n";
-				for(YAML::const_iterator filter_iter=value.begin();
-						filter_iter!=value.end();
+				if(!value.isArray())
+					std::cerr << "ERROR!\n" << key;
+				for(auto filter_iter=value.begin();
+						filter_iter != value.end();
 						++filter_iter)
 				{
 					asterisk_count = 0;
-					std::string val = filter_iter->as<std::string>();
+					std::string val = *filter_iter;
 					for(size_t i = 0; i < val.length(); i++)
 						if(val[i] == '*')
 							asterisk_count++;
@@ -235,46 +247,46 @@ void Config::parseWatcher(const YAML::Node& node)
 			}
 			else if(key == "include")
 			{
-				if(!value.IsSequence() && !value.IsScalar())
+				if(!value.isArray() && !value.isScalar())
 					std::cerr << "ERROR!\n";
-				if(value.IsSequence())
+				if(value.isArray())
 				{
-					for(YAML::const_iterator filter_iter=value.begin();
+					for(auto filter_iter=value.begin();
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						LOG(logger, DEBUG, "Include: %s", filter_iter->as<std::string>().c_str());
-						mWatch.include.push_back(filter_iter->as<std::string>());
+						LOG(logger, DEBUG, "Include: %s", (const char*)*filter_iter);
+						mWatch.include.push_back(*filter_iter);
 					}
 				}
-				else if(value.IsScalar())
+				else if(value.isScalar())
 				{
-					LOG(logger, DEBUG, "Include: %s", value.as<std::string>().c_str());
-					mWatch.include.push_back(value.as<std::string>());
+					LOG(logger, DEBUG, "Include: %s", (const char*)value);
+					mWatch.include.push_back(value);
 				}
 			}
 			else if(key == "exclude")
 			{
-				if(!value.IsSequence() && !value.IsScalar())
+				if(!value.isArray() && !value.isScalar())
 					std::cerr << "ERROR!\n";
-				if(value.IsSequence())
+				if(value.isArray())
 				{
-					for(YAML::const_iterator filter_iter=value.begin();
+					for(auto filter_iter=value.begin();
 							filter_iter!=value.end();
 							++filter_iter)
 					{
-						LOG(logger, DEBUG, "Exclude: %s", filter_iter->as<std::string>().c_str());
-						mWatch.exclude.push_back(filter_iter->as<std::string>());
+						LOG(logger, DEBUG, "Exclude: %s", (const char*)*filter_iter);
+						mWatch.exclude.push_back(*filter_iter);
 					}
 				}
-				else if(value.IsScalar())
+				else if(value.isScalar())
 				{
-					LOG(logger, DEBUG, "Exclude: %s", value.as<std::string>().c_str());
-					mWatch.exclude.push_back(value.as<std::string>());
+					LOG(logger, DEBUG, "Exclude: %s", (const char*)value);
+					mWatch.exclude.push_back(value);
 				}
 			}
 			else
-				LOG(logger, DEBUG, "Value: %s\n", value.as<std::string>().c_str());
+				LOG(logger, DEBUG, "Value: %s\n", (const char*)value);
 		}
 }
 

@@ -37,7 +37,7 @@
 #include <vector>
 #include <string>
 #include <istream>
-#include <yaml-cpp/yaml.h>
+#include <libconfig.h++>
 #include "process.hpp"
 #include "log.hpp"
 #include "procman.hpp"
@@ -74,14 +74,14 @@ class Config {
 	 * #vim: set tw=8 sw=8 ai noet:
 	 */
 	private:
-		YAML::Node config;
+		libconfig::Config config;
 #define CONFIG_SECTION(X) X##Config m##X;
 #include "config_sections.hpp"
 #undef CONFIG_SECTION
 		ProcessManager* procman;
 		iLogger* logger;
-		void parseWatcher(const YAML::Node&);
-		void parseCommand(const YAML::Node&, iCommandConfig&);
+		void parseWatcher(const libconfig::Setting&);
+		void parseCommand(const libconfig::Setting&, iCommandConfig&);
 		void parseConfig(std::istream&);
 		void findConfig(std::ifstream&);
 	public:
