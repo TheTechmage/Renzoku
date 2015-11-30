@@ -2,6 +2,7 @@
 #CXXFLAGS = -Wall -g -Isrc/ -static -lyaml-cpp -std=c++11
 AM_CXXFLAGS = --pedantic -Wall -O2 -g -std=c++11
 AM_LDFLAGS = -Bstatic -lconfig++ -Bdynamic
+SUBDIRS = parser
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
@@ -33,8 +34,6 @@ librenzoku_a_SOURCES = \
 											 util.hpp \
 											 watcher.cpp \
 											 watcher.hpp
-#											 tokenizer.cpp
-#											 tokenizer.hpp
 
 
 bin_PROGRAMS = renzoku

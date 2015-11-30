@@ -38,54 +38,61 @@
 #pragma once
 
 #include <string>
+#include <lexicon.hpp>
+#include <stdexcept>
 
-enum TokenType {
-	PROJECT,
-	INT,
-	FLOAT,
-	OPERATOR,
-	GROUPING_SYMBOL,
-	STRING,
-	COMMENT,
-	SPACE,
-	ERROR
-};
-
-class Token {
+class ParserException : public std::runtime_error {
 	private:
-		TokenType mType;
-		std::string mValue;
+		std::string buildMessage( const std::string& what, const std::string&
+				filename, unsigned long linenum, unsigned long column) {
+			std::string message = "";
+			message = what + ". File " + filename + ". Line " + std::to_string(linenum)
+				+ " column " + std::to_string(column);
+			return message;
+		}
 	public:
-		Token(TokenType, std::string);
-		TokenType getType() const;
-		std::string getValue() const;
+		explicit ParserException( const std::string& what, const std::string&
+				filename, size_t linenum, size_t column) :
+			std::runtime_error(buildMessage(what, filename, linenum, column))
+		{
+		}
 };
 
 class Tokenizer {
+	public:
+		enum TokenType {
+			INVALID=0,
+			WORD,
+			BOOLEAN,
+			NUMBER,
+			LIST,
+			STRING,
+			WS,
+			NL,
+			EOFTOK,
+			SPECIAL
+		};
+
 	private:
-		char getNextChar();
-		unsigned int currentChar;
+		size_t mCurrentChar;
+		size_t mCurrentLine;
+		size_t mCurrentColumn;
+		std::string mValue;
+		TokenType	mToken;
+		BLexicon* mLexer;
+		std::string mFilename;
+		std::istream* mFile;
+		char nextChar();
 
 	public:
-		Tokenizer();
-		Tokenizer(std::istream&);
-		Token getToken();
-		std::string next();
-		/*
-			 static const char COMMENTCHAR = '#';
-			 static const char INDENTATIONCHAR = '\t';
-			 static const char* CMDBUILD = "buildcmd";
-			 static const char* CMDRUN = "runcmd";
-			 static const char* CMDPROJECT = "project";
-			 const enum item_type = {
-			 project_name,
-			 build_command,
-			 run_command,
-			 file_mask,
-			 };
-			 static struct {
-			 item_type Type;
-			 char* Buffer;
-			 } Item;
-			 */
+		Tokenizer(std::string filename);
+		void setLexer(BLexicon&);
+		void next();
+		const TokenType getToken() const;
+		const std::string& getValue() const;
+};
+
+class DummyTokenizer : public Tokenizer {
+	public:
+		DummyTokenizer(std::string str);
 };

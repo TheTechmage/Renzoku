@@ -99,5 +99,5 @@ AC_PROG_RANLIB
 
 #AC_CONFIG_FILES([Makefile])
 AC_OUTPUT(Makefile src/Makefile doc/Makefile examples/Makefile man/Makefile
-					tests/Makefile src/config/Makefile)
+					tests/Makefile src/config/Makefile src/parser/Makefile)
 AC_OUTPUT
