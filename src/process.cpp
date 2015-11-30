@@ -76,6 +76,8 @@ Process::~Process()
 
 bool Process::run()
 {
+	if(mCommand == NULL || !mEnabled)
+		return false;
 	mProc = fork();
 	if(mProc == -1)
 	{
