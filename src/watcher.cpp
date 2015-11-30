@@ -101,10 +101,11 @@ void Watcher::listen()
 		if( length <= 0 )
 			LOG_ERROR(logger, "read");
 
-		//LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
+		LOG(logger, DEBUG, "Event buffer size: %d", /*mBuffer,*/length);
 		while( i < length ) {
 			struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
-			//LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+			LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+			LOG(logger, DEBUG, "%d && %X & %X && ! %X & %X", event->len, event->mask, IN_MODIFY, event->mask, IN_ISDIR);
 			if( event->len &&
 					(event->mask & IN_MODIFY) &&
 					(! (event->mask & IN_ISDIR))

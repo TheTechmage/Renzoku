@@ -163,6 +163,9 @@ void Config::parseCommand(const libconfig::Setting& node, iCommandConfig& config
 	//return;
 	printf("%d %d %s\n", node.getLength(), node.isArray(), node.getName());
 	if(node.getLength() > 0 && node.isGroup())
+	{
+#if (((LIBCONFIGXX_VER_MAJOR == 1) && (LIBCONFIGXX_VER_MINOR >= 5)) \
+		|| (LIBCONFIGXX_VER_MAJOR > 1))
 		for (auto iter = node.begin(); iter != node.end(); ++iter) {
 			std::string key = iter->getName();
 			const libconfig::Setting &value = *iter;
@@ -207,6 +210,8 @@ void Config::parseCommand(const libconfig::Setting& node, iCommandConfig& config
 				config.enabled = value;
 			}
 		}
+#endif
+	}
 	//for(size_t i=0;config.command[i]; i++)
 	//{
 	//	std::cout << "==" << config.command[i] << '\n';
@@ -222,6 +227,9 @@ void Config::parseWatcher(const libconfig::Setting& node)
 {
 	size_t asterisk_count;
 	if(node.getLength() > 0 && node.isGroup())
+	{
+#if (((LIBCONFIGXX_VER_MAJOR == 1) && (LIBCONFIGXX_VER_MINOR >= 5)) \
+		|| (LIBCONFIGXX_VER_MAJOR > 1))
 		for (auto iter = node.begin(); iter != node.end(); ++iter) {
 			std::string key = iter->getName();
 			const libconfig::Setting &value = *iter;
@@ -288,5 +296,7 @@ void Config::parseWatcher(const libconfig::Setting& node)
 			else
 				LOG(logger, DEBUG, "Value: %s\n", (const char*)value);
 		}
+#endif
+	}
 }
 

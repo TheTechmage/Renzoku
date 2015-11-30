@@ -68,6 +68,16 @@ AS_IF([test "x$with_yaml" != xno],
 										)],
 										[]
 										)])
+AC_ARG_ENABLE(debug,
+							AS_HELP_STRING([--enable-debug],
+								[build with additional debugging code]),
+							[case "${enableval}" in
+								yes) debug=true; AC_DEFINE([__DEBUG__]) ;;
+								no) debug=false ;;
+								*)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug])
+								;; esac],
+							[debug=false])
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 AC_LANG_POP([C++])
 
 # Checks for typedefs, structures, and compiler characteristics.

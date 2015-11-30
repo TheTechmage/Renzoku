@@ -131,6 +131,7 @@ namespace Util
 		newCommand[i] = NULL;
 		return newCommand;
 	}
+
 	bool strMatch(const std::string& expression, const std::string& str)
 	{
 		size_t lenstr, lensuffix, asterisk, i;
