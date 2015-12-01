@@ -77,6 +77,11 @@ char Tokenizer::nextChar()
 		mCurrentChar++;
 		mCurrentColumn++;
 		char c = mFile->get();
+		if( c == '\\' ) {
+			mCurrentChar++;
+			mCurrentColumn++;
+			c = mFile->get();
+		}
 		if( c == '\n' || c == '\r' ) {
 			mCurrentLine++;
 			mCurrentColumn = 0;
