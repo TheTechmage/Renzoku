@@ -37,15 +37,19 @@
 #include "tokenizer.hpp"
 #include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <cerrno>
 
 #define THROWPARSE(MESSAGE) throw ParserException(MESSAGE, mFilename, \
-		mCurrentLine, mCurrentColumn)
+		parse_start_line ? parse_start_line : mCurrentLine, \
+		parse_start_line ? parse_start_column : mCurrentColumn, \
+		getCurrentLine(parse_start_pos, parse_start_column))
 
 Tokenizer::Tokenizer(std::string filename) :
 		mCurrentChar(0),
-		mCurrentLine(0),
-		mCurrentColumn(0)
+		mCurrentLine(1),
+		mCurrentColumn(0),
+		mFile(NULL)
 {
 	std::ifstream* file = new std::ifstream();
 	//file->exceptions( std::ifstream::failbit | std::ifstream::badbit );
@@ -66,8 +70,20 @@ Tokenizer::Tokenizer(std::string filename) :
 	//	std::cout << c;
 	//	c = file.get();
 	//}
-	mFile = file;
+	if (file->good()) {
+		mFile = file;
+	}
+	else {
+		throw std::runtime_error("File not found!");
+	}
 }
+
+Tokenizer::~Tokenizer() {
+	if (mFile) {
+		((std::ifstream*)mFile)->close();
+	}
+}
+
 const Tokenizer::TokenType Tokenizer::getToken() const
 {
 	return mToken;
@@ -88,9 +104,21 @@ char Tokenizer::nextChar()
 		}
 		return c;
 }
+const std::string Tokenizer::getCurrentLine(size_t& start, size_t& current) {
+	std::string message;
+	size_t pos = mFile->tellg();
+	mFile->clear();
+	mFile->seekg( start - current );
+	std::getline(*mFile, message);
+	mFile->seekg( mCurrentChar );
+	return message;
+}
 void Tokenizer::next()
 {
 	char c;
+	size_t parse_start_line = 0;
+	size_t parse_start_column = 0;
+	size_t parse_start_pos = mCurrentChar;
 	BLexicon::lexicon_t lexicon;
 	BLexicon::lexicon_t oldlexicon;
 	mValue = "";
@@ -130,6 +158,9 @@ void Tokenizer::next()
 			//mFile->exceptions( std::ifstream::failbit & std::ifstream::badbit );
 			mToken = STRING;
 			char quotemarker = nextChar();
+			parse_start_pos = mCurrentChar;
+			parse_start_line = mCurrentLine;
+			parse_start_column = mCurrentColumn;
 			do {
 				mValue += nextChar();
 				c = mFile->peek();

@@ -1,4 +1,6 @@
-
+#pragma once
+#include <string>
+#include "tokenizer.hpp"
 
 struct CfgStep {
 	char* name; // Required
@@ -17,6 +19,23 @@ struct CfgWatch {
 	char** excludesFilter; // Optional, default: NULL
 	char* workingDir; // Optional, default: cwd
 	CfgStep* steps; // Require at least one
+	CfgWatch* next; // Optional, Can be NULL
+};
+
+class Parser {
+	private:
+		std::string mFilename;
+		Tokenizer mTokenizer;
+		CfgWatch* mWatchers;
+		CfgWatch* mLastWatcher;
+
+		void parseWatcher(CfgWatch*);
+	public:
+		virtual ~Parser();
+		Parser(std::string& filename);
+		void Parse();
+		const CfgWatch* begin() const;
+		const CfgWatch* end() const;
 };
 
 /* Example Config format:
@@ -53,3 +72,4 @@ struct CfgWatch {
  *         command = "bin/my_program"
  *     }
  * }
+ */

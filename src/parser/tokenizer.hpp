@@ -38,22 +38,43 @@
 #pragma once
 
 #include <string>
+#include <ostream>
+#include <fstream>
+#include <algorithm>
 #include <lexicon.hpp>
 #include <stdexcept>
 
 class ParserException : public std::runtime_error {
 	private:
-		std::string buildMessage( const std::string& what, const std::string&
-				filename, unsigned long linenum, unsigned long column) {
+		std::string buildMessage( const std::string& what,
+				const std::string& filename,
+				unsigned long linenum,
+				unsigned long column,
+				const std::string& line = "") {
 			std::string message = "";
-			message = what + ". File " + filename + ". Line " + std::to_string(linenum)
-				+ " column " + std::to_string(column);
+			message = what;
+			message += ". File ";
+			message += filename;
+			message += ". Line ";
+			message += std::to_string(linenum);
+			message += " character ";
+			message += std::to_string(column);
+			message += ".";
+			if(!line.empty()) {
+				std::string line_replacement = line;
+				std::replace( line_replacement.begin(), line_replacement.end(), '\t', ' ');
+				message += "\n\r";
+				message += line_replacement;
+				message += "\n\r";
+				message.insert( message.size(), column - 1, ' ');
+				message += "\e[0;31m^\e[0m Parse error starts from this position";
+			}
 			return message;
 		}
 	public:
 		explicit ParserException( const std::string& what, const std::string&
-				filename, size_t linenum, size_t column) :
-			std::runtime_error(buildMessage(what, filename, linenum, column))
+				filename, size_t linenum, size_t column, const std::string& line ) :
+			std::runtime_error(buildMessage(what, filename, linenum, column, line))
 		{
 		}
 };
@@ -81,15 +102,20 @@ class Tokenizer {
 		TokenType	mToken;
 		BLexicon* mLexer;
 		std::string mFilename;
-		std::istream* mFile;
+		std::ifstream* mFile;
 		char nextChar();
 
 	public:
 		Tokenizer(std::string filename);
+		virtual ~Tokenizer();
 		void setLexer(BLexicon&);
 		void next();
 		const TokenType getToken() const;
 		const std::string& getValue() const;
+		const std::string getCurrentLine(size_t&, size_t&);
+		const size_t getLinePosition() const { return mCurrentLine; }
+		const size_t getColumnPosition() const { return mCurrentColumn; }
+		const size_t getFilePosition() const { return mCurrentChar; }
 };
 
 class DummyTokenizer : public Tokenizer {
