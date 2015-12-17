@@ -2,6 +2,9 @@
 a.out
 bin
 renzoku
+src/parser/parser
+src/config/renconf
+*.a
 
 # Generated files
 *.in
@@ -28,3 +31,4 @@ tests/test_runner*
 *.swp
 LICENSE.new
 coverage
+ignoreme/
