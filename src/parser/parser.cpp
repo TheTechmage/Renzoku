@@ -55,7 +55,27 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 		parseWatcherOptions(watcher, "exclude", key);
 		parseWatcherOptions(watcher, "dir", key);
 		if( key == "step" )
-			break;
+		{
+			mTokenizer.next();
+			if( mTokenizer.getToken() != Tokenizer::WS )
+				throw std::runtime_error("Unknown exception while parsing config");
+			else
+				mTokenizer.next();
+			if( mTokenizer.getToken() != Tokenizer::WORD &&
+					mTokenizer.getToken() != Tokenizer::STRING )
+				throw std::runtime_error("Unknown exception while parsing config");
+			std::string name_step = mTokenizer.getValue();
+			printf("\tStep: %s\n", name_step.c_str());
+			mTokenizer.next();
+			if( mTokenizer.isWhiteSpace() )
+				mTokenizer.next();
+			assertExp(Tokenizer::SPECIAL, "{");
+			mTokenizer.next();
+			while( mTokenizer.getValue() != "}" ) {
+				mTokenizer.next();
+			}
+			mTokenizer.next();
+		}
 		mTokenizer.next();
 	}
 	printf("Watcher [%s] found!\n", watcher->name);
