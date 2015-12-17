@@ -131,14 +131,16 @@ void Config::parseConfig(std::istream& file)
 			if(procman->getProgram()) {
 				throw std::runtime_error("Program already set!");
 			}
-			if(mProgram.command && mProgram.enabled)
-				procman->setProgram(new Process(logger, mProgram.command, true));
+			if(mProgram.command)
+				procman->setProgram(new Process(logger, mProgram.command, true,
+							mProgram.enabled));
 		}
 		else if(key == "test")
 		{
 			this->parseCommand(*it, mTest);
-			if(mTest.command && mTest.enabled)
-				procman->addProcess(new Process(logger, mTest.command, true));
+			if(mTest.command)
+				procman->addProcess(new Process(logger, mTest.command, true,
+							mTest.enabled));
 		}
 		else if(key == "compile")
 		{
@@ -146,8 +148,9 @@ void Config::parseConfig(std::istream& file)
 			if(procman->getBuildStep()) {
 				throw std::runtime_error("BuildStage already set!");
 			}
-			if(mCompile.command && mCompile.enabled)
-				procman->setBuilder(new Process(logger, mCompile.command, true));
+			if(mCompile.command)
+				procman->setBuilder(new Process(logger, mCompile.command, true,
+							mCompile.enabled));
 		}
 		else
 		{

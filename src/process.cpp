@@ -43,21 +43,22 @@
 #include <cstring>
 #include <sys/wait.h>
 
-Process::Process(iLogger* logger, const std::string &command, bool in_path) :
+Process::Process(iLogger* logger, const std::string &command, bool in_path,
+		bool enabled) :
 	mProc(0),
 	mSearchInPath(in_path),
 	mGeneratedCommand(true),
-	mEnabled(true),
+	mEnabled(enabled),
 	logger(logger)
 {
 	mCommand = Util::parseCommand(command);
 }
 
-Process::Process(iLogger* logger, char** command, bool in_path) :
+Process::Process(iLogger* logger, char** command, bool in_path, bool enabled) :
 	mProc(0),
 	mSearchInPath(in_path),
 	mGeneratedCommand(false),
-	mEnabled(true),
+	mEnabled(enabled),
 	mCommand(command),
 	logger(logger)
 {
@@ -77,7 +78,7 @@ Process::~Process()
 bool Process::run()
 {
 	if(mCommand == NULL || !mEnabled)
-		return false;
+		return true;
 	mProc = fork();
 	if(mProc == -1)
 	{
@@ -133,6 +134,8 @@ bool Process::run()
 }
 bool Process::runAndWait()
 {
+	if(mCommand == NULL || !mEnabled)
+		return true;
 	if(!this->run())
 		return false;
 	int status = 0;
