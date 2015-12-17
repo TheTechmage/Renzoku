@@ -50,8 +50,8 @@ class Process
 		iLogger* logger;
 	public:
 		~Process();
-		Process(iLogger*, const std::string &command, bool in_path);
-		Process(iLogger*, char** command, bool in_path);
+		Process(iLogger*, const std::string &command, bool in_path, bool enabled);
+		Process(iLogger*, char** command, bool in_path, bool enabled);
 		inline void enable() { mEnabled = true; };
 		inline void disable() { mEnabled = false; };
 		inline bool isEnabled() { return mEnabled; };
