@@ -111,12 +111,15 @@ class Tokenizer {
 		void setLexer(BLexicon&);
 		void next();
 		const TokenType getToken() const;
+		const bool isWhiteSpace() const;
 		const std::string& getValue() const;
 		const std::string getCurrentLine(size_t&, size_t&);
 		const size_t getLinePosition() const { return mCurrentLine; }
 		const size_t getColumnPosition() const { return mCurrentColumn; }
 		const size_t getFilePosition() const { return mCurrentChar; }
 };
+
+std::string toktostr(const Tokenizer::TokenType& t);
 
 class DummyTokenizer : public Tokenizer {
 	public:

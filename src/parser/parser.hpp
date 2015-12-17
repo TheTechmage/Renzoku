@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include "tokenizer.hpp"
 
 struct CfgStep {
@@ -30,9 +31,16 @@ class Parser {
 		CfgWatch* mLastWatcher;
 
 		void parseWatcher(CfgWatch*);
+		bool assertExp(const Tokenizer::TokenType&);
+		bool assertExp(const Tokenizer::TokenType&, std::string);
+		const std::string& parseKey();
+		void parseEquals();
+		const std::vector<std::string> parseValue();
+		bool safeSpecial();
+		void parseWatcherOptions(CfgWatch*, std::string expectedKey, std::string key);
 	public:
 		virtual ~Parser();
-		Parser(std::string& filename);
+		Parser(std::string filename);
 		void Parse();
 		const CfgWatch* begin() const;
 		const CfgWatch* end() const;

@@ -45,6 +45,7 @@
 		parse_start_line ? parse_start_column : mCurrentColumn, \
 		getCurrentLine(parse_start_pos, parse_start_column))
 
+
 Tokenizer::Tokenizer(std::string filename) :
 		mCurrentChar(0),
 		mCurrentLine(1),
@@ -113,6 +114,7 @@ const std::string Tokenizer::getCurrentLine(size_t& start, size_t& current) {
 	mFile->seekg( mCurrentChar );
 	return message;
 }
+
 void Tokenizer::next()
 {
 	char c;
@@ -184,7 +186,51 @@ void Tokenizer::setLexer(BLexicon& lexer) {
 	mLexer = &lexer;
 }
 
+std::string toktostr(const Tokenizer::TokenType& t) {
+		enum TokenType {
+			INVALID=0,
+			WORD,
+			BOOLEAN,
+			NUMBER,
+			LIST,
+			STRING,
+			WS,
+			NL,
+			EOFTOK,
+			SPECIAL
+		};
+	switch (t) {
+		case INVALID:
+			return "INVALID";
+		case WORD:
+			return "WORD   ";
+		case BOOLEAN:
+			return "BOOLEAN";
+		case NUMBER:
+			return "NUMBER ";
+		case LIST:
+			return "LIST   ";
+		case STRING:
+			return "STRING ";
+		case WS:
+			return "WS     ";
+		case NL:
+			return "NL     ";
+		case EOFTOK:
+			return "EOFTOK ";
+		case SPECIAL:
+			return "SPECIAL";
+		default:
+			return "???????";
+	}
+}
+
 const std::string& Tokenizer::getValue() const
 {
+	//printf("Token: %s\n", toktostr(mToken).c_str());
 	return mValue;
+}
+
+const bool Tokenizer::isWhiteSpace() const {
+	return ( mToken == WS || mToken == NL );
 }
