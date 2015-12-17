@@ -50,6 +50,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 			continue;
 		}
 		std::string key = parseKey();
+
 		parseWatcherOptions(watcher, "files", key);
 		parseWatcherOptions(watcher, "exclude", key);
 		parseWatcherOptions(watcher, "dir", key);
@@ -60,17 +61,19 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 	printf("Watcher [%s] found!\n", watcher->name);
 }
 
-void Parser::parseWatcherOptions(CfgWatch* watcher, std::string expectKey,
-		std::string key) {
+std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
+		std::string expectKey, std::string key) {
+		std::vector<std::string> values;
 		if( key != expectKey )
-			return;
+			return values;
 		parseEquals();
-		std::vector<std::string> values = parseValue();
+		values = parseValue();
 		printf("K: %s V: ", key.c_str());
 		for (auto value : values) {
 			printf("%s, ", value.c_str());
 		}
 		printf("\n");
+		return values;
 }
 
 const std::string& Parser::parseKey() {

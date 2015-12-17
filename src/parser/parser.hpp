@@ -37,7 +37,7 @@ class Parser {
 		void parseEquals();
 		const std::vector<std::string> parseValue();
 		bool safeSpecial();
-		void parseWatcherOptions(CfgWatch*, std::string expectedKey, std::string key);
+		std::vector<std::string> parseWatcherOptions(CfgWatch*, std::string expectedKey, std::string key);
 	public:
 		virtual ~Parser();
 		Parser(std::string filename);
