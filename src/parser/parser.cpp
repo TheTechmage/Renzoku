@@ -26,6 +26,7 @@ Parser::Parser(std::string filename) :
 }
 
 Parser::~Parser() {
+	// TODO(frostyfrog): Cleanup
 }
 
 void Parser::parseWatcher(CfgWatch* watcher) {
@@ -35,12 +36,14 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 	watcher->name[name.length()] = '\0';
 
 	// TODO(frostyfrog): Finish this
-	printf("Watcher [%s] found!\n", watcher->name);
 
 	// Convert string to char array
 	for (size_t i = 0; i < name.length(); i++) {
 		watcher->name[i] = name[i];
 	}
+
+	// Debug: Print out the watcher's name
+	printf("Watcher [%s] found!\n", watcher->name);
 
 	// Move off the watch name token
 	mTokenizer.next();
@@ -67,6 +70,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 
 		// Parse out the key in the key value pairs
 		std::string key = parseKey();
+		//LOWER(key) // Should we allow this?
 
 		// Parse each valid section
 		parseWatcherOptions(watcher, "files", key);
@@ -103,6 +107,15 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 
 			// TODO(frostyfrog): Parse the insides of the step
 			while( mTokenizer.getValue() != "}" ) {
+				if( mTokenizer.getToken() == Tokenizer::WORD ) {
+					key = parseKey();
+					// Parse each valid section
+					printf("\t");
+					parseWatcherOptions(watcher, "enabled", key);
+					parseWatcherOptions(watcher, "command", key);
+					parseWatcherOptions(watcher, "error_status", key);
+					parseWatcherOptions(watcher, "ignore_status", key);
+				}
 				mTokenizer.next();
 			}
 
@@ -118,17 +131,29 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 // Parse just the options (key/value)
 std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 		std::string expectKey, std::string key) {
-		std::vector<std::string> values;
-		if( key != expectKey )
-			return values;
-		parseEquals();
-		values = parseValue();
-		printf("K: %s V: ", key.c_str());
-		for (auto value : values) {
-			printf("%s, ", value.c_str());
-		}
-		printf("\n");
+
+	// Setup our vector
+	std::vector<std::string> values;
+
+	// Return an empty vector if this is the wrong code block
+	if( key != expectKey )
 		return values;
+
+	// Get rid of the equals
+	parseEquals();
+
+	// Parse out the value
+	values = parseValue();
+
+	// Debug: Print out all values
+	printf("\t%s: ", key.c_str());
+	for (auto value : values) {
+		printf("[%s]", value.c_str());
+	}
+	printf("\n");
+
+	// Return the values
+	return values;
 }
 
 // Get the key for the key/value pair

@@ -98,6 +98,14 @@ char Tokenizer::nextChar()
 			mCurrentChar++;
 			mCurrentColumn++;
 			c = mFile->get();
+			if( c == '\n' ) {
+				mFile->get();
+				if( c == '\r' )
+					 mFile->get();
+				while(mFile->peek() == ' ' || mFile->peek() == '\t')
+					mFile->get();
+				c = ' ';
+			}
 		}
 		if( c == '\n' || c == '\r' ) {
 			mCurrentLine++;
