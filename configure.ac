@@ -3,6 +3,7 @@
 
 AC_PREREQ([2.69])
 AC_INIT(renzoku, 0.1.0, renzoku@frostyfrog.net)
+AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE
 
 # Checks for programs.
@@ -96,6 +97,9 @@ AC_CHECK_FUNCS([getcwd gettimeofday memset select strerror])
 
 # Static Library
 AC_PROG_RANLIB
+
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
+AC_PROG_AWK
 
 #AC_CONFIG_FILES([Makefile])
 AC_OUTPUT(Makefile src/Makefile doc/Makefile examples/Makefile man/Makefile

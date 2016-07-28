@@ -50,7 +50,8 @@ Tokenizer::Tokenizer(std::string filename) :
 		mCurrentChar(0),
 		mCurrentLine(1),
 		mCurrentColumn(0),
-		mFile(NULL)
+		mFile(NULL),
+		mFileOwnership(true)
 {
 	std::ifstream* file = new std::ifstream();
 	//file->exceptions( std::ifstream::failbit | std::ifstream::badbit );
@@ -79,9 +80,26 @@ Tokenizer::Tokenizer(std::string filename) :
 	}
 }
 
+Tokenizer::Tokenizer(std::string filename, std::istream& file) :
+		mCurrentChar(0),
+		mCurrentLine(1),
+		mCurrentColumn(0),
+		mFile(NULL),
+		mFileOwnership(false)
+{
+	mFilename = filename;
+	if (file.good()) {
+		mFile = &file;
+	}
+	else {
+		throw std::runtime_error("File not found!");
+	}
+}
+
 Tokenizer::~Tokenizer() {
-	if (mFile) {
+	if (mFile && mFileOwnership) {
 		((std::ifstream*)mFile)->close();
+		delete mFile;
 	}
 }
 
@@ -162,6 +180,14 @@ void Tokenizer::next()
 			lexicon = mLexer->getLexicon(c);
 		} while( c != EOF && lexicon == oldlexicon );
 		mToken = WORD;
+		if( mValue == "true" || mValue == "yes") {
+			mToken = BOOLEAN;
+			mValue = "y";
+		}
+		else if( mValue == "false" || mValue == "no") {
+			mToken = BOOLEAN;
+			mValue = "n";
+		}
 	}
 	else if( lexicon == BLexicon::SPECIAL ) {
 		if( c == '"' || c == '\'' ) {
@@ -174,6 +200,10 @@ void Tokenizer::next()
 			do {
 				mValue += nextChar();
 				c = mFile->peek();
+				if( c == '\\' ) {
+					nextChar();
+					c = mFile->peek();
+				}
 			} while( mFile->good() && c != EOF && c != quotemarker );
 			if( c == quotemarker && mFile->good())
 				nextChar();
@@ -188,6 +218,22 @@ void Tokenizer::next()
 	else {
 		return;
 	}
+}
+
+void Tokenizer::invokeError(const std::string& msg) {
+	size_t parse_start_line = 0;
+	size_t parse_start_column = 0;
+	size_t parse_start_pos = mCurrentChar;
+	parse_start_pos = mCurrentChar;
+	parse_start_line = mCurrentLine;
+	parse_start_column = mCurrentColumn;
+	THROWPARSE(msg);
+	/*
+	throw ParserException(msg, mFilename, \
+			parse_start_line ? parse_start_line : mCurrentLine, \
+			parse_start_line ? parse_start_column-6 : mCurrentColumn, \
+			getCurrentLine(parse_start_pos, parse_start_column));
+	// */
 }
 
 void Tokenizer::setLexer(BLexicon& lexer) {

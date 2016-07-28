@@ -41,7 +41,7 @@
 #include <ostream>
 #include <fstream>
 #include <algorithm>
-#include <lexicon.hpp>
+#include "lexicon.hpp"
 #include <stdexcept>
 
 class ParserException : public std::runtime_error {
@@ -102,11 +102,13 @@ class Tokenizer {
 		TokenType	mToken;
 		BLexicon* mLexer;
 		std::string mFilename;
-		std::ifstream* mFile;
+		std::istream* mFile;
+		bool mFileOwnership;
 		char nextChar();
 
 	public:
 		Tokenizer(std::string filename);
+		Tokenizer(std::string filename, std::istream& file);
 		virtual ~Tokenizer();
 		void setLexer(BLexicon&);
 		void next();
@@ -117,6 +119,7 @@ class Tokenizer {
 		const size_t getLinePosition() const { return mCurrentLine; }
 		const size_t getColumnPosition() const { return mCurrentColumn; }
 		const size_t getFilePosition() const { return mCurrentChar; }
+		void invokeError(const std::string& msg);
 };
 
 std::string toktostr(const Tokenizer::TokenType& t);

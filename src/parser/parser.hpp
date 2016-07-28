@@ -16,11 +16,25 @@ struct CfgStep {
 
 struct CfgWatch {
 	char* name; // Required
-	char** filesFilter; // Required
-	char** excludesFilter; // Optional, default: NULL
+	std::vector<std::string> filesFilter; // Required
+	std::vector<std::string> excludesFilter; // Optional, default: NULL
 	char* workingDir; // Optional, default: cwd
 	CfgStep* steps; // Require at least one
 	CfgWatch* next; // Optional, Can be NULL
+};
+class CfgWatchIter {
+	private:
+		CfgWatch* node;
+	public:
+		inline CfgWatchIter(CfgWatch* node=NULL) { this->node = node; }
+		inline CfgWatchIter& operator++() { node = node->next; return *this; }
+		inline const CfgWatch* operator*() { return node; }
+		inline bool operator==(const CfgWatchIter& x) const {
+			return node == x.node;
+		}
+		inline bool operator!=(const CfgWatchIter& x) const {
+			return node != x.node;
+		}
 };
 
 class Parser {
@@ -36,14 +50,22 @@ class Parser {
 		const std::string& parseKey();
 		void parseEquals();
 		const std::vector<std::string> parseValue();
+		const bool parseBoolean();
+		const std::string parseString();
 		bool safeSpecial();
-		std::vector<std::string> parseWatcherOptions(CfgWatch*, std::string expectedKey, std::string key);
+		std::vector<std::string> parseWatcherOptions(CfgWatch*, std::string key);
+		std::string parseWatcherOption(CfgWatch*, std::string key);
+		bool parseBooleanOption(CfgWatch*, std::string key);
+		bool mIsKey(const std::string& expectKey, const std::string& key);
+		char* mStrToChar(const std::string&);
 	public:
 		virtual ~Parser();
 		Parser(std::string filename);
+		Parser(std::istream& file);
 		void Parse();
-		const CfgWatch* begin() const;
-		const CfgWatch* end() const;
+		CfgWatchIter begin() const;
+		CfgWatchIter end() const;
+		const CfgWatch* getWatchers() const { return mWatchers; }
 };
 
 /* Example Config format:

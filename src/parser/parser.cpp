@@ -6,11 +6,21 @@
 #define LOWER(x) std::transform(x.begin(), x.end(), x.begin(),\
 		::tolower);
 
+CfgStep* create_CfgStep() {
+	CfgStep* step = new CfgStep;
+	step->name = NULL;
+	step->command = NULL;
+	step->daemon = false;
+	step->enabled = false;
+	step->error_status = NULL;
+	step->ignore_status = NULL;
+	step->next = NULL;
+	return step;
+}
+
 CfgWatch* create_CfgWatch() {
 	CfgWatch* watcher = new CfgWatch;
 	watcher->name = NULL;
-	watcher->filesFilter = NULL;
-	watcher->excludesFilter = NULL;
 	watcher->workingDir = NULL;
 	watcher->steps = NULL;
 	watcher->next = NULL;
@@ -25,22 +35,47 @@ Parser::Parser(std::string filename) :
 {
 }
 
+Parser::Parser(std::istream& file) :
+	mFilename("<BUFFER>"),
+	mTokenizer(mFilename, file),
+	mWatchers(NULL),
+	mLastWatcher(NULL)
+{
+}
+
 Parser::~Parser() {
 	// TODO(frostyfrog): Cleanup
+	if( mWatchers != NULL ) {
+		CfgWatch *watcher = mWatchers;
+		CfgWatch *tmpwatcher = watcher->next;
+		while( watcher != mLastWatcher ) {
+			tmpwatcher = watcher->next;
+			delete [] watcher->name;
+			delete watcher;
+			watcher = tmpwatcher;
+		}
+		delete [] watcher->name;
+		delete watcher;
+	}
+}
+
+char* Parser::mStrToChar(const std::string& str) {
+	char* retval = new char[str.length()+1];
+	retval[str.length()] = '\0';
+
+	// Convert string to char array
+	for (size_t i = 0; i < str.length(); i++) {
+		retval[i] = str[i];
+	}
+	return retval;
 }
 
 void Parser::parseWatcher(CfgWatch* watcher) {
 	// Initialize local variables
 	std::string name = mTokenizer.getValue();
-	watcher->name = new char[name.length()+1];
-	watcher->name[name.length()] = '\0';
+	watcher->name = mStrToChar(name);
 
 	// TODO(frostyfrog): Finish this
-
-	// Convert string to char array
-	for (size_t i = 0; i < name.length(); i++) {
-		watcher->name[i] = name[i];
-	}
 
 	// Debug: Print out the watcher's name
 	printf("Watcher [%s] found!\n", watcher->name);
@@ -73,9 +108,12 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 		//LOWER(key) // Should we allow this?
 
 		// Parse each valid section
-		parseWatcherOptions(watcher, "files", key);
-		parseWatcherOptions(watcher, "exclude", key);
-		parseWatcherOptions(watcher, "dir", key);
+		if( mIsKey("files", key) )
+			watcher->filesFilter = parseWatcherOptions(watcher, key);
+		if( mIsKey("exclude", key) )
+			watcher->excludesFilter = parseWatcherOptions(watcher, key);
+		if ( mIsKey("dir", key) )
+			parseWatcherOptions(watcher, key);
 
 		// We are now parsing a step
 		if( key == "step" )
@@ -95,6 +133,8 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 			// Get the name of the current step
 			std::string name_step = mTokenizer.getValue();
 			printf("\tStep: %s\n", name_step.c_str());
+			CfgStep* step = create_CfgStep();
+			step->name = mStrToChar(name_step);
 
 			// Skip whitespace
 			mTokenizer.next();
@@ -111,16 +151,29 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 					key = parseKey();
 					// Parse each valid section
 					printf("\t");
-					parseWatcherOptions(watcher, "enabled", key);
-					parseWatcherOptions(watcher, "command", key);
-					parseWatcherOptions(watcher, "error_status", key);
-					parseWatcherOptions(watcher, "ignore_status", key);
+					if (mIsKey("enabled", key))
+					parseBooleanOption(watcher, key);
+					if (mIsKey("command", key))
+					parseWatcherOption(watcher, key);
+					if (mIsKey("error_status", key))
+					parseWatcherOptions(watcher, key);
+					if (mIsKey("ignore_status", key))
+					parseWatcherOptions(watcher, key);
 				}
 				mTokenizer.next();
 			}
 
 			// Skip the }
 			mTokenizer.next();
+			if (!watcher->steps) {
+				watcher->steps = step;
+			} else {
+				CfgStep* tmpstep = step;
+				while(tmpstep->next) {
+					tmpstep = tmpstep->next;
+				}
+				tmpstep->next = step;
+			}
 		}
 
 		// TODO(frostyfrog): Figure out why this was here again...
@@ -128,16 +181,52 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 	}
 }
 
+// Determine if we have the right key
+bool Parser::mIsKey(const std::string& expectKey, const std::string& key) {
+	//mTokenizer.next();
+	printf("(%s != %s) == %d\n", key.c_str(), expectKey.c_str(), ( key != expectKey ));
+	return ( key == expectKey );
+}
+
+// Parse out boolean values
+bool Parser::parseBooleanOption(CfgWatch* watcher, std::string key) {
+
+	// Get rid of the equals
+	parseEquals();
+
+	// Parse out the value
+	bool values = parseBoolean();
+
+	// Debug: Print out all values
+	printf("\t%s: ", key.c_str());
+	printf("\n");
+
+	// Return the values
+	return values;
+}
+
+std::string Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
+
+	// Get rid of the equals
+	parseEquals();
+
+	// Parse out the value
+	char* values = mStrToChar(parseString());
+
+	// Debug: Print out all values
+	printf("\t%s: ", key.c_str());
+	printf("\n");
+
+	// Return the values
+	return values;
+}
+
 // Parse just the options (key/value)
 std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
-		std::string expectKey, std::string key) {
+		std::string key) {
 
 	// Setup our vector
 	std::vector<std::string> values;
-
-	// Return an empty vector if this is the wrong code block
-	if( key != expectKey )
-		return values;
 
 	// Get rid of the equals
 	parseEquals();
@@ -193,11 +282,10 @@ const std::vector<std::string> Parser::parseValue() {
 	{
 		// Cache the token and check it's validity
 		t = mTokenizer.getToken();
-		//printf("V: %s\n", mTokenizer.getValue().c_str());
 		if( t == Tokenizer::EOFTOK ||
 				t == Tokenizer::INVALID ||
 				t == Tokenizer::SPECIAL && !safeSpecial())
-			throw std::runtime_error("Unknown exception while parsing config");
+			mTokenizer.invokeError("Unexpected character");
 
 
 		//printf("V: %s\n", mTokenizer.getValue().c_str());
@@ -220,6 +308,48 @@ const std::vector<std::string> Parser::parseValue() {
 	return values;
 }
 
+const std::string Parser::parseString() {
+	// Initialize the variables
+	Tokenizer::TokenType t;
+	std::string retval;
+
+	// Loop until the end of the value
+	if( mTokenizer.getToken() == Tokenizer::WS )
+		mTokenizer.next();
+	if( mTokenizer.getToken() != Tokenizer::STRING )
+		mTokenizer.invokeError("Unexpected character");
+	printf("T: %d V: %s\n", mTokenizer.getToken(),
+			mTokenizer.getValue().c_str());
+	retval = mTokenizer.getValue();
+	mTokenizer.next();
+	if( mTokenizer.getToken() == Tokenizer::EOFTOK ||
+			mTokenizer.getToken() == Tokenizer::INVALID ||
+			mTokenizer.getToken() == Tokenizer::SPECIAL && !safeSpecial())
+		mTokenizer.invokeError("Unexpected character");
+	return retval;
+}
+
+const bool Parser::parseBoolean() {
+	// Initialize the variables
+	Tokenizer::TokenType t;
+	bool retval;
+
+	// Loop until the end of the value
+	if( t != Tokenizer::WS )
+		mTokenizer.next();
+	if( t != Tokenizer::BOOLEAN )
+		mTokenizer.invokeError("Unexpected character");
+	retval = mTokenizer.getValue() == "y";
+	mTokenizer.next();
+	if( t == Tokenizer::EOFTOK ||
+			t == Tokenizer::INVALID ||
+			mTokenizer.getValue() != ";" ||
+			t == Tokenizer::SPECIAL && !safeSpecial())
+		mTokenizer.invokeError("Unexpected character");
+	mTokenizer.next();
+	return retval;
+}
+
 // Check that the special token should be considered "safe"
 bool Parser::safeSpecial() {
 	std::string v = mTokenizer.getValue();
@@ -233,8 +363,13 @@ bool Parser::safeSpecial() {
 bool Parser::assertExp(const Tokenizer::TokenType& token) {
 	//printf("T: %d:%d V: %s:%s\n", token, mTokenizer.getToken(), value.c_str(),
 	//		mTokenizer.getValue().c_str());
-	if( mTokenizer.getToken() != token )
-		throw std::runtime_error("Unknown exception while parsing config");
+	if( mTokenizer.getToken() != token ) {
+		std::string token_str = toktostr(token);
+		std::string token_str2 = toktostr(mTokenizer.getToken());
+		std::string msg = "Expected " + token_str + ", got " + token_str2;
+		mTokenizer.invokeError(msg);
+		//throw std::runtime_error("Unknown exception while parsing config");
+	}
 	return true;
 }
 
@@ -242,10 +377,19 @@ bool Parser::assertExp(const Tokenizer::TokenType& token) {
 bool Parser::assertExp(const Tokenizer::TokenType& token, std::string value) {
 	//printf("T: %d:%d V: %s:%s\n", token, mTokenizer.getToken(), value.c_str(),
 	//		mTokenizer.getValue().c_str());
-	if( mTokenizer.getToken() != token )
+	if( mTokenizer.getToken() != token ) {
+		std::string token_str = toktostr(token);
+		std::string token_str2 = toktostr(mTokenizer.getToken());
+		std::string msg = "Expected " + token_str + ", got " + token_str2;
+		mTokenizer.invokeError(msg);
+		//throw std::runtime_error("Unknown exception while parsing config");
+	}
+	if( mTokenizer.getValue() != value ) {
+		std::string msg = "Expected \"" + value + "\", got " +
+			mTokenizer.getValue();
+		mTokenizer.invokeError(msg);
 		throw std::runtime_error("Unknown exception while parsing config");
-	if( mTokenizer.getValue() != value )
-		throw std::runtime_error("Unknown exception while parsing config");
+	}
 	return true;
 }
 
@@ -303,8 +447,8 @@ void Parser::Parse() {
 				mLastWatcher = mWatchers;
 			} else {
 				watcher = create_CfgWatch();
-				mLastWatcher = watcher;
 				mLastWatcher->next = watcher;
+				mLastWatcher = watcher;
 			}
 			watcher = mLastWatcher;
 
@@ -315,8 +459,10 @@ void Parser::Parse() {
 			mTokenizer.getToken() != Tokenizer::INVALID );
 }
 
-const CfgWatch* Parser::begin() const {
+CfgWatchIter Parser::begin() const {
+	return CfgWatchIter(mWatchers);
 }
 
-const CfgWatch* Parser::end() const {
+CfgWatchIter Parser::end() const {
+	return CfgWatchIter();
 }

@@ -1,6 +1,6 @@
 #CFLAGS = --pedantic -Wall -std=c99 -O2
 #CXXFLAGS = -Wall -g -Isrc/ -static -lyaml-cpp -std=c++11
-AM_CXXFLAGS = --pedantic -Wall -O2 -g -std=c++11
+AM_CXXFLAGS = --pedantic -Wall -O2 -g -std=c++11 -Iparser/
 AM_LDFLAGS = -Bstatic -lconfig++ -Bdynamic
 SUBDIRS = parser
 
@@ -38,7 +38,7 @@ librenzoku_a_SOURCES = \
 
 bin_PROGRAMS = renzoku
 renzokudir = $(pkglibdir)/@PACKAGE@
-renzoku_LDADD = librenzoku.a
+renzoku_LDADD = librenzoku.a parser/libparser.a
 renzoku_SOURCES = \
 									main.hpp \
 									main.cpp
