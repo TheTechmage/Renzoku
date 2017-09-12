@@ -55,7 +55,7 @@ class Parser {
 		bool safeSpecial();
 		short* parseStatusCodes(std::vector<std::string>&);
 		std::vector<std::string> parseWatcherOptions(CfgWatch*, std::string key);
-		std::string parseWatcherOption(CfgWatch*, std::string key);
+		char* parseWatcherOption(CfgWatch*, std::string key);
 		bool parseBooleanOption(CfgWatch*, std::string key);
 		bool mIsKey(const std::string& expectKey, const std::string& key);
 		char* mStrToChar(const std::string&);

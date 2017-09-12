@@ -48,14 +48,22 @@ Parser::~Parser() {
 	if( mWatchers != NULL ) {
 		CfgWatch *watcher = mWatchers;
 		CfgWatch *tmpwatcher = watcher->next;
-		while( watcher != mLastWatcher ) {
+		CfgStep *step = NULL;
+		CfgStep *tmpstep = NULL;
+		while( watcher ) {
+			step = watcher->steps;
 			tmpwatcher = watcher->next;
 			delete [] watcher->name;
+			while( step ) {
+				tmpstep = step->next;
+				delete [] step->name;
+				delete [] step->command;
+				delete step;
+				step = tmpstep;
+			}
 			delete watcher;
 			watcher = tmpwatcher;
 		}
-		delete [] watcher->name;
-		delete watcher;
 	}
 }
 
@@ -155,15 +163,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 					step->enabled = parseBooleanOption(watcher, key);
 					if (mIsKey("command", key))
 					{
-						std::string val;
-						char* cmd;
-						val = parseWatcherOption(watcher, key).c_str();
-						cmd = new char[val.length()+1];
-						for (int i = 0; i < val.length(); i++) {
-							cmd[i] = val[i];
-						}
-						cmd[val.length()] = 0;
-						step->command = cmd;
+						step->command = parseWatcherOption(watcher, key);
 					}
 					// XXX: For now, we skip these two
 					if (mIsKey("error_status", key))
@@ -218,7 +218,7 @@ bool Parser::parseBooleanOption(CfgWatch* watcher, std::string key) {
 	return retval;
 }
 
-std::string Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
+char* Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
 
 	// Get rid of the equals
 	parseEquals();
