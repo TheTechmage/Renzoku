@@ -257,6 +257,7 @@ std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 	return values;
 }
 
+// Parse the string list of values and convert them into short numbers
 short* Parser::parseStatusCodes(std::vector<std::string>& strs) {
 	uint count = 0;
 	size_t pos = 0;
