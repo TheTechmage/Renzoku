@@ -50,9 +50,10 @@ class Parser {
 		const std::string& parseKey();
 		void parseEquals();
 		const std::vector<std::string> parseValue();
-		const bool parseBoolean();
+		const char parseBoolean();
 		const std::string parseString();
 		bool safeSpecial();
+		short* parseStatusCodes(std::vector<std::string>&);
 		std::vector<std::string> parseWatcherOptions(CfgWatch*, std::string key);
 		std::string parseWatcherOption(CfgWatch*, std::string key);
 		bool parseBooleanOption(CfgWatch*, std::string key);

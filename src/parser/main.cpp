@@ -41,5 +41,20 @@ int main(int argc, char *argv[])
 	Parser p("test.conf");
 	p.Parse();
 	printf("\nEOF\n");
+	printf("\nFrom main.c:\n");
+	//const CfgWatch* watchers = p.getWatchers();
+	//CfgWatchIter iter;
+	CfgStep* step;
+	for (auto i : p) {
+		printf("[%s]\n", (*i).name);
+		step = i->steps;
+		//printf("%d\n", step->next);
+		while(step) {
+			printf("\t%s\n", step->name);
+			printf("\t\t%s\n", step->command);
+			printf("\t\t%s\n", step->enabled ? "true" : "false");
+			step = step->next;
+		}
+	}
 	return 0;
 }

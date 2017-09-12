@@ -150,11 +150,21 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 				if( mTokenizer.getToken() == Tokenizer::WORD ) {
 					key = parseKey();
 					// Parse each valid section
-					printf("\t");
+					//printf("\t");
 					if (mIsKey("enabled", key))
-					parseBooleanOption(watcher, key);
+					step->enabled = parseBooleanOption(watcher, key);
 					if (mIsKey("command", key))
-					parseWatcherOption(watcher, key);
+					{
+						std::string val;
+						char* cmd;
+						val = parseWatcherOption(watcher, key).c_str();
+						cmd = new char[val.length()+1];
+						for (int i = 0; i < val.length(); i++) {
+							cmd[i] = val[i];
+						}
+						cmd[val.length()] = 0;
+						step->command = cmd;
+					}
 					if (mIsKey("error_status", key))
 					parseWatcherOptions(watcher, key);
 					if (mIsKey("ignore_status", key))
@@ -168,7 +178,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 			if (!watcher->steps) {
 				watcher->steps = step;
 			} else {
-				CfgStep* tmpstep = step;
+				CfgStep* tmpstep = watcher->steps;
 				while(tmpstep->next) {
 					tmpstep = tmpstep->next;
 				}
@@ -184,7 +194,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 // Determine if we have the right key
 bool Parser::mIsKey(const std::string& expectKey, const std::string& key) {
 	//mTokenizer.next();
-	printf("(%s != %s) == %d\n", key.c_str(), expectKey.c_str(), ( key != expectKey ));
+	//printf("(%s != %s) == %d\n", key.c_str(), expectKey.c_str(), ( key != expectKey ));
 	return ( key == expectKey );
 }
 
@@ -195,14 +205,16 @@ bool Parser::parseBooleanOption(CfgWatch* watcher, std::string key) {
 	parseEquals();
 
 	// Parse out the value
-	bool values = parseBoolean();
+	const char value = parseBoolean();
+	bool retval;
+	retval = value == 'y';
 
 	// Debug: Print out all values
-	printf("\t%s: ", key.c_str());
+	printf("\t\t%s: %c", key.c_str(), value);
 	printf("\n");
 
 	// Return the values
-	return values;
+	return retval;
 }
 
 std::string Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
@@ -214,7 +226,7 @@ std::string Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
 	char* values = mStrToChar(parseString());
 
 	// Debug: Print out all values
-	printf("\t%s: ", key.c_str());
+	printf("\t\t%s: %s", key.c_str(), values);
 	printf("\n");
 
 	// Return the values
@@ -235,7 +247,7 @@ std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 	values = parseValue();
 
 	// Debug: Print out all values
-	printf("\t%s: ", key.c_str());
+	printf("\t\t%s: ", key.c_str());
 	for (auto value : values) {
 		printf("[%s]", value.c_str());
 	}
@@ -243,6 +255,19 @@ std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 
 	// Return the values
 	return values;
+}
+
+short* Parser::parseStatusCodes(std::vector<std::string>& strs) {
+	uint count = 0;
+	size_t pos = 0;
+	for (auto s : strs) {
+		pos = s.find("-");
+		if( pos != (size_t)-1 ) {
+			// TODO: Parse and count all numbers in range
+		} else {
+			// TODO: Parse single numbers here
+		}
+	}
 }
 
 // Get the key for the key/value pair
@@ -285,7 +310,7 @@ const std::vector<std::string> Parser::parseValue() {
 		if( t == Tokenizer::EOFTOK ||
 				t == Tokenizer::INVALID ||
 				t == Tokenizer::SPECIAL && !safeSpecial())
-			mTokenizer.invokeError("Unexpected character");
+			mTokenizer.invokeError("[e1] Unexpected character");
 
 
 		//printf("V: %s\n", mTokenizer.getValue().c_str());
@@ -310,43 +335,40 @@ const std::vector<std::string> Parser::parseValue() {
 
 const std::string Parser::parseString() {
 	// Initialize the variables
-	Tokenizer::TokenType t;
 	std::string retval;
 
 	// Loop until the end of the value
 	if( mTokenizer.getToken() == Tokenizer::WS )
 		mTokenizer.next();
 	if( mTokenizer.getToken() != Tokenizer::STRING )
-		mTokenizer.invokeError("Unexpected character");
-	printf("T: %d V: %s\n", mTokenizer.getToken(),
-			mTokenizer.getValue().c_str());
+		mTokenizer.invokeError("[e2] Unexpected character");
+	//printf("\tT: %d V: %s\n", mTokenizer.getToken(),
+	//		mTokenizer.getValue().c_str());
 	retval = mTokenizer.getValue();
 	mTokenizer.next();
 	if( mTokenizer.getToken() == Tokenizer::EOFTOK ||
 			mTokenizer.getToken() == Tokenizer::INVALID ||
 			mTokenizer.getToken() == Tokenizer::SPECIAL && !safeSpecial())
-		mTokenizer.invokeError("Unexpected character");
+		mTokenizer.invokeError("[e3] Unexpected character");
 	return retval;
 }
 
-const bool Parser::parseBoolean() {
+const char Parser::parseBoolean() {
 	// Initialize the variables
-	Tokenizer::TokenType t;
-	bool retval;
+	char retval;
 
 	// Loop until the end of the value
-	if( t != Tokenizer::WS )
+	if( mTokenizer.getToken() == Tokenizer::WS )
 		mTokenizer.next();
-	if( t != Tokenizer::BOOLEAN )
-		mTokenizer.invokeError("Unexpected character");
-	retval = mTokenizer.getValue() == "y";
+	if( mTokenizer.getToken() != Tokenizer::BOOLEAN )
+		mTokenizer.invokeError("[e4] Unexpected character");
+	retval = mTokenizer.getValue().c_str()[0];
 	mTokenizer.next();
-	if( t == Tokenizer::EOFTOK ||
-			t == Tokenizer::INVALID ||
-			mTokenizer.getValue() != ";" ||
-			t == Tokenizer::SPECIAL && !safeSpecial())
-		mTokenizer.invokeError("Unexpected character");
-	mTokenizer.next();
+	if( mTokenizer.getValue() != ";" && (
+			mTokenizer.getToken() == Tokenizer::EOFTOK ||
+			mTokenizer.getToken() == Tokenizer::INVALID ||
+			mTokenizer.getToken() == Tokenizer::SPECIAL && !safeSpecial()))
+		mTokenizer.invokeError("[e5] Unexpected character");
 	return retval;
 }
 
