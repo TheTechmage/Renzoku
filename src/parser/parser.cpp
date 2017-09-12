@@ -165,6 +165,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 						cmd[val.length()] = 0;
 						step->command = cmd;
 					}
+					// XXX: For now, we skip these two
 					if (mIsKey("error_status", key))
 					parseWatcherOptions(watcher, key);
 					if (mIsKey("ignore_status", key))
