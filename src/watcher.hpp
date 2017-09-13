@@ -34,8 +34,9 @@
 #include <string>
 #include <vector>
 
-#include "config.hpp"
+#include "parser/parser.hpp"
 #include "process.hpp"
+#include "procman.hpp"
 #include "log.hpp"
 
 #define EVENT_SIZE	( sizeof (struct inotify_event) )
@@ -49,7 +50,7 @@ class Watcher {
 		std::vector<std::string> mFiletypes;
 		std::vector<int> mFDs;
 		char mBuffer[EVENT_BUF_LEN];
-		Config& mConfig;
+		Parser &mParser;
 		int mINotify;
 		time_t mTimer;
 		Process* mBuilder;
@@ -64,7 +65,7 @@ class Watcher {
 		bool rebuild();
 		void restartProgram();
 	public:
-		Watcher(iLogger* logger, std::string, Config& conf, ProcessManager*, bool recursive);
+		Watcher(iLogger* logger, std::string, Parser& parser, ProcessManager*, bool recursive);
 		~Watcher();
 		void watchFileType(std::string);
 		void listen();

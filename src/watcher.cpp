@@ -22,18 +22,17 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Watcher::Watcher(iLogger* logger, std::string dir, Config& conf, ProcessManager* pm, bool recursive) :
+Watcher::Watcher(iLogger* logger, std::string dir, Parser& parser, ProcessManager* pm, bool recursive) :
 	logger(logger),
 	mDirectory(dir),
 	mRecursive(recursive),
-	mConfig(conf),
+	mParser(parser),
 	mTimer(time(0)-15),
 	mBuilder(pm->getBuildStep()),
 	procman(pm)
 {
 	mINotify = inotify_init();
 	watchDirectory();
-
 }
 
 Watcher::~Watcher()
@@ -110,20 +109,27 @@ void Watcher::listen()
 					(event->mask & IN_MODIFY) &&
 					(! (event->mask & IN_ISDIR))
 				){
-				for(auto str : mConfig.getWatchConfig().filters)
+				for(auto watcher : mParser)
 				{
-					if(Util::strMatch(str, std::string(event->name))) {
-						LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
-						timediff = *localtime(&mTimer);
-						timediff.tm_sec += 5;
-						if(mktime(&timediff) <= time(0)) {
-							if(this->rebuild()) {
-								LOG(logger, DEBUG, "%ju", mktime(&timediff));
-								mTimer = time(0);
-								this->restartProgram();
+					for( auto watcher_path : watcher->excludesFilter ) {
+						if(Util::strMatch(watcher_path, std::string(event->name))) {
+							continue;
+						}
+					}
+					for( auto watcher_path : watcher->filesFilter ) {
+						if(Util::strMatch(watcher_path, std::string(event->name))) {
+							LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
+							timediff = *localtime(&mTimer);
+							timediff.tm_sec += 5;
+							if(mktime(&timediff) <= time(0)) {
+								if(this->rebuild()) {
+									LOG(logger, DEBUG, "%ju", mktime(&timediff));
+									mTimer = time(0);
+									this->restartProgram();
+								}
 							}
 						}
 					}
@@ -151,7 +157,7 @@ bool Watcher::rebuild()
 
 void Watcher::restartProgram()
 {
-	mConfig.restartProcesses();
+	//mConfig.restartProcesses();
 }
 
 #ifdef DEBUG

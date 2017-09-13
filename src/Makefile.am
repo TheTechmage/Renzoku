@@ -16,12 +16,8 @@ librenzoku_adir = $(pkglibdir)/@PACKAGE@
 #											 util.hpp \
 #											 watcher.hpp
 librenzoku_a_SOURCES = \
-											 config.cpp \
-											 config.hpp \
-											 config_sections.hpp \
 											 exceptions.cpp \
 											 exceptions.hpp \
-											 i_configfile.hpp \
 											 log.cpp \
 											 log.hpp \
 											 process.cpp \

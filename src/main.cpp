@@ -37,7 +37,6 @@
 #include <cstdlib>
 #include "main.hpp"
 #include "signals.hpp"
-#include "config.hpp"
 #include "log.hpp"
 #include "watcher.hpp"
 #include "procman.hpp"
@@ -70,7 +69,7 @@ int main(int argc, char** argv) {
 				pex.getLine(), pex.getError());
 		return EXIT_FAILURE;
 	}
-	//Watcher w(&logger, "./", *config, &procman, true);
+	Watcher w(&logger, "./", p, &procman, true);
 
 	//while(gRunning)
 	//	w.listen();
