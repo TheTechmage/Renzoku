@@ -2,6 +2,8 @@
 #include "tokenizer.hpp"
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
+#include <iostream>
 
 #define LOWER(x) std::transform(x.begin(), x.end(), x.begin(),\
 		::tolower);
@@ -33,6 +35,12 @@ Parser::Parser(std::string filename) :
 	mWatchers(NULL),
 	mLastWatcher(NULL)
 {
+}
+
+template <class T>
+bool str_to_type(T& t, const std::string& s) {
+	std::istringstream iss(s);
+	return !(iss >> t).fail();
 }
 
 Parser::Parser(std::istream& file) :
@@ -168,6 +176,8 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 					// XXX: For now, we skip these two
 					if (mIsKey("error_status", key))
 					parseWatcherOptions(watcher, key);
+					// parseStatusCodes (parse options retval)
+					// mTokenizer.invokeError(msg);
 					if (mIsKey("ignore_status", key))
 					parseWatcherOptions(watcher, key);
 				}
@@ -260,16 +270,31 @@ std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 
 // Parse the string list of values and convert them into short numbers
 short* Parser::parseStatusCodes(std::vector<std::string>& strs) {
-	uint count = 0;
 	size_t pos = 0;
+	short tmp;
+	short* retval = NULL;
+	std::vector<short> builder;
 	for (auto s : strs) {
 		pos = s.find("-");
 		if( pos != (size_t)-1 ) {
 			// TODO: Parse and count all numbers in range
 		} else {
-			// TODO: Parse single numbers here
+			if( str_to_type( tmp, s ) ) {
+				builder.push_back(tmp);
+			} else {
+				std::string msg = "Unable to find number in '" + s + "'";
+				mTokenizer.invokeError(msg);
+			}
 		}
 	}
+	if( builder.size() > 0 ) {
+		pos = 0;
+		retval = new short[builder.size() + 1];
+		for (auto i : builder) {
+			retval[pos++] = i;
+		}
+	}
+	return retval;
 }
 
 // Get the key for the key/value pair
