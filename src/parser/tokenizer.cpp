@@ -197,14 +197,17 @@ void Tokenizer::next()
 			parse_start_pos = mCurrentChar;
 			parse_start_line = mCurrentLine;
 			parse_start_column = mCurrentColumn;
+			bool escape = false;
 			do {
+				escape = false;
 				mValue += nextChar();
 				c = mFile->peek();
 				if( c == '\\' ) {
+					escape = true;
 					nextChar();
 					c = mFile->peek();
 				}
-			} while( mFile->good() && c != EOF && c != quotemarker );
+			} while( mFile->good() && c != EOF && (escape || c != quotemarker) );
 			if( c == quotemarker && mFile->good())
 				nextChar();
 			if( !mFile->good() )

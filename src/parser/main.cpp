@@ -46,13 +46,21 @@ int main(int argc, char *argv[])
 	//CfgWatchIter iter;
 	CfgStep* step;
 	for (auto i : p) {
-		printf("[%s]\n", (*i).name);
+		printf("[%s] cwd: %s\n", (*i).name, (*i).workingDir);
+		printf("Files: ");
+		for (std::string s : (*i).filesFilter)
+			printf("%s, ", s.c_str());
+		printf("\n");
+		printf("Exclude: ");
+		for (std::string s : (*i).excludesFilter)
+			printf("%s, ", s.c_str());
+		printf("\n");
 		step = i->steps;
 		//printf("%d\n", step->next);
 		while(step) {
-			printf("\t%s\n", step->name);
-			printf("\t\t%s\n", step->command);
-			printf("\t\t%s\n", step->enabled ? "true" : "false");
+			printf("\tstep: %s\n", step->name);
+			printf("\t\tcommand: %s\n", step->command);
+			printf("\t\tenabled: %s\n", step->enabled ? "true" : "false");
 			step = step->next;
 		}
 	}

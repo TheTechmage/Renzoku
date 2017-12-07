@@ -129,7 +129,7 @@ void Parser::parseWatcher(CfgWatch* watcher) {
 		if( mIsKey("exclude", key) )
 			watcher->excludesFilter = parseWatcherOptions(watcher, key);
 		if ( mIsKey("dir", key) )
-			parseWatcherOptions(watcher, key);
+			watcher->workingDir = mStrToChar(parseWatcherOptions(watcher, key).at(0)); // Can throw std::out_of_range
 
 		// We are now parsing a step
 		if( key == "step" )
@@ -245,7 +245,7 @@ char* Parser::parseWatcherOption(CfgWatch* watcher, std::string key) {
 }
 
 // Parse just the options (key/value)
-std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
+const std::vector<std::string> Parser::parseWatcherOptions(CfgWatch* watcher,
 		std::string key) {
 
 	// Setup our vector
