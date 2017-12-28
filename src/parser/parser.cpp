@@ -13,7 +13,7 @@ CfgStep* create_CfgStep() {
 	step->name = NULL;
 	step->command = NULL;
 	step->daemon = false;
-	step->enabled = false;
+	step->enabled = true;
 	step->error_status = NULL;
 	step->ignore_status = NULL;
 	step->next = NULL;

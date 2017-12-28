@@ -21,7 +21,6 @@
 #include "procman.hpp"
 
 ProcessManager::ProcessManager(iLogger *logger) :
-	mBuildStep(NULL),
 	mProgram(NULL),
 	logger(logger)
 {
@@ -30,29 +29,11 @@ ProcessManager::ProcessManager(iLogger *logger) :
 ProcessManager::~ProcessManager() {
 	for(Process* proc : mProcesses)
 		delete proc;
-	delete mBuildStep;
 	delete mProgram;
-}
-
-Process* ProcessManager::getBuildStep() {
-	return mBuildStep;
 }
 
 Process* ProcessManager::getProgram() {
 	return mProgram;
-}
-
-bool ProcessManager::runBuild() {
-	if(mBuildStep->runAndWait())
-	{
-		LOG(logger, SUCCESS, "Successfully ran command");
-		return true;
-	}
-	else
-	{
-		LOG(logger, ERROR, "A command failed to run :(");
-		return false;
-	}
 }
 
 bool ProcessManager::runProcesses() {
@@ -65,6 +46,7 @@ bool ProcessManager::runProcesses() {
 		else
 		{
 			LOG(logger, ERROR, "A command failed to run :(");
+			return false;
 		}
 	}
 	return true;
@@ -73,14 +55,15 @@ bool ProcessManager::runProcesses() {
 void ProcessManager::haltConstructionProcs() {
 	for(Process* proc : mProcesses)
 	{
-		proc->kill();
+		if(proc)
+			proc->kill();
 	}
 }
 
 void ProcessManager::killAll() {
-	mBuildStep->kill();
 	haltConstructionProcs();
-	mProgram->kill();
+	if(mProgram)
+		mProgram->kill();
 }
 
 void ProcessManager::startProgram() {
@@ -94,17 +77,10 @@ void ProcessManager::haltProgram() {
 void ProcessManager::restartAll()
 {
 	haltConstructionProcs();
-	if(runBuild()) {
-		runProcesses();
+	if(runProcesses()) {
 		haltProgram();
 		startProgram();
 	}
-}
-
-void ProcessManager::setBuilder(Process* proc) {
-	if(mBuildStep)
-		throw std::runtime_error("Build Step already set");
-	mBuildStep = proc;
 }
 
 void ProcessManager::addProcess(Process* proc) {
@@ -115,5 +91,10 @@ void ProcessManager::setProgram(Process* proc) {
 	if(mProgram)
 		throw std::runtime_error("Pogram already set");
 	mProgram = proc;
+}
+
+void ProcessManager::finalize() {
+	setProgram(mProcesses.back());
+	mProcesses.pop_back();
 }
 

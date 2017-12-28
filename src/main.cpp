@@ -40,10 +40,12 @@
 #include "log.hpp"
 #include "watcher.hpp"
 #include "procman.hpp"
+#include "threadmgr.hpp"
 #include <libconfig.h++>
 #include "parser/parser.hpp"
+#include <mutex>
 
-volatile sig_atomic_t gRunning = 1;
+std::mutex gRunning;
 
 int main(int argc, char** argv) {
 	struct sigaction int_catcher;
@@ -61,7 +63,7 @@ int main(int argc, char** argv) {
 				pex.getLine(), pex.getError());
 		return EXIT_FAILURE;
 	}*/
-	Parser p("config.conf");
+	Parser p("renzoku.conf");
 	try {
 		p.Parse();
 	} catch	( const libconfig::ParseException &pex ) {
@@ -69,7 +71,25 @@ int main(int argc, char** argv) {
 				pex.getLine(), pex.getError());
 		return EXIT_FAILURE;
 	}
-	Watcher w(&logger, "./", p, &procman, true);
+	const CfgWatch* watcher = p.getWatchers();
+	CfgStep* step;
+	Process* proc;
+	step = watcher->steps;
+	while(step) {
+		proc = new Process(&logger, step->command, true, step->enabled);
+		procman.addProcess(proc);
+		step = step->next;
+	}
+	procman.finalize();
+	Watcher w(&logger, watcher->name, watcher->workingDir, watcher, &procman, true);
+	LOG(&logger, DEBUG, "Testing");
+	Threadmgr mgr;
+	mgr.AddWatcher(&w);
+	mgr.Start();
+	gRunning.lock();
+	gRunning.lock();
+	gRunning.unlock();
+	mgr.Stop();
 
 	//while(gRunning)
 	//	w.listen();
@@ -78,12 +98,12 @@ int main(int argc, char** argv) {
 	return EXIT_SUCCESS;
 }
 
-sig_atomic_t program_is_running()
-{
-	return gRunning;
-}
+//sig_atomic_t program_is_running()
+//{
+//	return gRunning;
+//}
 
 void stop_program()
 {
-	gRunning = 0;
+	gRunning.unlock();
 }

@@ -25,23 +25,20 @@
 class ProcessManager
 {
 	private:
-		Process* mBuildStep; // The actual build step
-		std::vector<Process*> mProcesses; // Procs that run between build and launch
+		std::vector<Process*> mProcesses; // Procs that run for build before launch
 		Process* mProgram; // The actual program
 		iLogger* logger;
 	public:
 		ProcessManager(iLogger*);
 		~ProcessManager();
-		Process* getBuildStep();
 		Process* getProgram();
-		bool runBuild();
 		bool runProcesses();
 		void haltConstructionProcs();
 		void startProgram();
 		void haltProgram();
 		void restartAll();
 		void killAll();
-		void setBuilder(Process*);
 		void addProcess(Process*);
 		void setProgram(Process*);
+		void finalize();
 };
