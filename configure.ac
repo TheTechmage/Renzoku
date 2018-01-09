@@ -103,5 +103,5 @@ AC_PROG_AWK
 
 #AC_CONFIG_FILES([Makefile])
 AC_OUTPUT(Makefile src/Makefile doc/Makefile examples/Makefile man/Makefile
-					tests/Makefile src/config/Makefile src/parser/Makefile)
+					tests/Makefile src/parser/Makefile)
 AC_OUTPUT

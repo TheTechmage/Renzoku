@@ -41,7 +41,6 @@
 #include "watcher.hpp"
 #include "procman.hpp"
 #include "threadmgr.hpp"
-#include <libconfig.h++>
 #include "parser/parser.hpp"
 #include <mutex>
 
@@ -64,13 +63,7 @@ int main(int argc, char** argv) {
 		return EXIT_FAILURE;
 	}*/
 	Parser p("renzoku.conf");
-	try {
-		p.Parse();
-	} catch	( const libconfig::ParseException &pex ) {
-		fprintf(stderr, "Parse error at %s:%d - %s\n", pex.getFile(),
-				pex.getLine(), pex.getError());
-		return EXIT_FAILURE;
-	}
+	p.Parse();
 	const CfgWatch* watcher = p.getWatchers();
 	CfgStep* step;
 	Process* proc;

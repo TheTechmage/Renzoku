@@ -23,11 +23,12 @@ void Threadmgr::AddWatcher(Watcher* w) {
 void Threadmgr::Start() {
 	std::thread* thread;
 	for (auto w : mWatchers) {
-		thread = new std::thread(w->Start, w);
+		thread = new std::thread(&Watcher::Start, w);
 		if (thread) {
 			mThreads.push_back(thread);
 		} else {
-			fprintf(stderr, "Failed to create new thread for %s\n", w->getName());
+			fprintf(stderr, "Failed to create new thread for %s\n",
+					w->getName().c_str());
 		}
 	}
 }
