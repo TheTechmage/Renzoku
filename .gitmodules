@@ -1,0 +1,3 @@
+[submodule "tests/bash-tap"]
+	path = tests/bash-tap
+	url = https://github.com/rwhitworth/bash-tap.git

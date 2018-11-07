@@ -17,6 +17,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+#pragma once
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
@@ -34,8 +35,9 @@
 #include <string>
 #include <vector>
 
-#include "config.hpp"
+#include "parser/parser.hpp"
 #include "process.hpp"
+#include "procman.hpp"
 #include "log.hpp"
 
 #define EVENT_SIZE	( sizeof (struct inotify_event) )
@@ -44,12 +46,14 @@
 class Watcher {
 	private:
 		iLogger* logger;
+		std::string mName;
+		bool mRunning;
 		std::string mDirectory;
 		bool mRecursive;
 		std::vector<std::string> mFiletypes;
 		std::vector<int> mFDs;
 		char mBuffer[EVENT_BUF_LEN];
-		Config& mConfig;
+		const CfgWatch* mWatcher;
 		int mINotify;
 		time_t mTimer;
 		Process* mBuilder;
@@ -64,8 +68,12 @@ class Watcher {
 		bool rebuild();
 		void restartProgram();
 	public:
-		Watcher(iLogger* logger, std::string, Config& conf, ProcessManager*, bool recursive);
+		Watcher(iLogger* logger, std::string, std::string, const CfgWatch* cfg, ProcessManager*, bool recursive);
 		~Watcher();
 		void watchFileType(std::string);
 		void listen();
+		const std::string getName();
+		const bool isRunning();
+		void Stop();
+		static void Start(Watcher*);
 };

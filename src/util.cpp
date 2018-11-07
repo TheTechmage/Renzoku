@@ -56,18 +56,30 @@ namespace Util
 		if(dirptr == nullptr)
 			throw CException("opendir");
 
+		std::string filepath;
 		while((entry = readdir(dirptr))) {
-			lstat(entry->d_name, &st);
+			filepath = path;
+			filepath += '/';
+			filepath += entry->d_name;
+			//printf("FD! - %s\n", filepath.c_str());
+			if(strcmp(entry->d_name, ".") == 0 ||
+					strcmp(entry->d_name, "..") == 0)
+				continue;
+			if(lstat(filepath.c_str(), &st) != 0)
+				perror("lstat");
 
 			if(ft == DIRECTORY && S_ISDIR(st.st_mode)) {
+				//printf("DIR! - %s, %d\n", entry->d_name, S_ISDIR(st.st_mode));
 				std::string str(entry->d_name);
 				ret.push_back(str);
 			}
 			else if(ft == FILETYPE && !S_ISDIR(st.st_mode)) {
+				//printf("FILE! - %s\n", entry->d_name);
 				std::string str(entry->d_name);
 				ret.push_back(str);
 			}
 			else if(ft == ALL) {
+				//printf("ALL! - %s\n", entry->d_name);
 				std::string str(entry->d_name);
 				ret.push_back(str);
 			}
@@ -119,6 +131,7 @@ namespace Util
 		newCommand[i] = NULL;
 		return newCommand;
 	}
+
 	bool strMatch(const std::string& expression, const std::string& str)
 	{
 		size_t lenstr, lensuffix, asterisk, i;

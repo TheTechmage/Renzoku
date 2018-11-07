@@ -39,7 +39,7 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 		std::string command = "touch ";
 		command += FILENAME;
 
-		Process p(mainLogger, command, true);
+		Process p(mainLogger, command, true, true);
 		INFO("Making sure our test file doesn't exist (After class instantiation)");
 		CHECK_FALSE(exists_test3(FILENAME));
 		p.runAndWait();
@@ -47,7 +47,7 @@ TEST_CASE( "Testing Sub-process forking", "[Process]" ) {
 		REQUIRE(exists_test3(FILENAME));
 		command = "rm ";
 		command += FILENAME;
-		Process p2(mainLogger, command, true);
+		Process p2(mainLogger, command, true, true);
 		p2.runAndWait();
 		INFO("Making sure our test file doesn't exist (Clearnup)");
 		REQUIRE_FALSE(exists_test3(FILENAME));

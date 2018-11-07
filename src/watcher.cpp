@@ -22,18 +22,20 @@
 #include "util.hpp"
 #include "log.hpp"
 
-Watcher::Watcher(iLogger* logger, std::string dir, Config& conf, ProcessManager* pm, bool recursive) :
+Watcher::Watcher(iLogger* logger, std::string name, std::string dir, const CfgWatch* cfg, ProcessManager* pm, bool recursive) :
 	logger(logger),
+	mName(name),
+	mRunning(true),
 	mDirectory(dir),
 	mRecursive(recursive),
-	mConfig(conf),
+	mWatcher(cfg),
 	mTimer(time(0)-15),
-	mBuilder(pm->getBuildStep()),
 	procman(pm)
 {
+	LOG(logger, DEBUG, "Watcher init");
 	mINotify = inotify_init();
 	watchDirectory();
-
+	LOG(logger, DEBUG, "Watcher post-init");
 }
 
 Watcher::~Watcher()
@@ -52,13 +54,13 @@ void Watcher::removeAllWatches()
 void Watcher::watchDirectory()
 {
 
-	mINotify = inotify_init();
+	//mINotify = inotify_init();
 	if( mINotify  < 0 )
 		perror("inotify_init");
-	mFDs.push_back(inotify_add_watch(mINotify, Util::cwd().c_str(), IN_MODIFY));
+	mFDs.push_back(inotify_add_watch(mINotify, mDirectory.c_str(), IN_MODIFY));
 	if(mRecursive)
 	{
-		this->recursiveWatch(Util::cwd());
+		this->recursiveWatch(mDirectory);
 	}
 }
 void Watcher::recursiveWatch(std::string maindir)
@@ -68,10 +70,12 @@ void Watcher::recursiveWatch(std::string maindir)
 	{
 		for(std::string dir : dirs)
 		{
-			if(dir == "." || dir == "..")
+			if(dir.compare(".") == 0 || dir.compare("..") == 0)
 				continue;
+			LOG(logger, DEBUG, "Watching %s", (maindir + '/' + dir).c_str());
 			mFDs.push_back(inotify_add_watch(mINotify, (maindir + '/' +
 							dir).c_str(), IN_MODIFY));
+			LOG(logger, DEBUG, "%s => %s", dir.c_str(), ".");
 			this->recursiveWatch(maindir + '/' + dir);
 		}
 	}
@@ -91,7 +95,7 @@ void Watcher::listen()
 	mTimeout.tv_sec = 1;
 	mTimeout.tv_usec = 0;
 	int selval = select(mINotify+1, &mReadFDs, NULL, NULL, &mTimeout);
-	if(selval == 1) {
+	if(selval >= 1) {
 		int length, i;
 		struct tm timediff = {0};
 		length = read( mINotify, mBuffer, EVENT_BUF_LEN);
@@ -103,27 +107,32 @@ void Watcher::listen()
 		while( i < length ) {
 			struct inotify_event *event = ( struct inotify_event * ) &mBuffer[i];
 			LOG(logger, DEBUG, "File %s -> 0x%x!", event->name, event->mask);
+			LOG(logger, DEBUG, "%d && %X & %X && ! %X & %X", event->len, event->mask, IN_MODIFY, event->mask, IN_ISDIR);
 			if( event->len &&
 					(event->mask & IN_MODIFY) &&
 					(! (event->mask & IN_ISDIR))
 				){
-				for(auto str : mConfig.getWatchConfig().filters)
-				{
-					if(Util::strMatch(str, std::string(event->name))) {
-						LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
-						//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
-						timediff = *localtime(&mTimer);
-						timediff.tm_sec += 5;
-						if(mktime(&timediff) <= time(0)) {
-							if(this->rebuild()) {
-								LOG(logger, DEBUG, "%ju", mktime(&timediff));
-								mTimer = time(0);
-								this->restartProgram();
-							}
+					for( auto watcher_path : mWatcher->excludesFilter ) {
+						if(Util::strMatch(watcher_path, std::string(event->name))) {
+							continue;
 						}
 					}
+					for( auto watcher_path : mWatcher->filesFilter ) {
+						if(Util::strMatch(watcher_path, std::string(event->name))) {
+							LOG(logger, INFO, "\033[0;32m=> File %s was modified!\033[0m", event->name);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", timer+5);
+							//Logger::getLogger()->LOG(logger, DEBUG, "%ju", time(0));
+							timediff = *localtime(&mTimer);
+							timediff.tm_sec += 5;
+							if(mktime(&timediff) <= time(0)) {
+								if(this->rebuild()) {
+									LOG(logger, DEBUG, "%ju", mktime(&timediff));
+									mTimer = time(0);
+									this->restartProgram();
+								}
+							}
+						}
 				}
 			}
 			i += EVENT_SIZE + event->len;
@@ -138,7 +147,7 @@ void Watcher::listen()
 
 bool Watcher::rebuild()
 {
-	bool status = mBuilder->runAndWait();
+	bool status = procman->runProcesses();
 	if(status)
 		LOG(logger, SUCCESS, "Successfully rebuilt project");
 	else
@@ -148,7 +157,33 @@ bool Watcher::rebuild()
 
 void Watcher::restartProgram()
 {
-	mConfig.restartProcesses();
+	//mConfig.restartProcesses();
+	procman->haltProgram();
+	procman->startProgram();
+	LOG(logger, SUCCESS, "Started program");
+}
+
+const std::string Watcher::getName()
+{
+	return mName;
+}
+
+const bool Watcher::isRunning()
+{
+	//LOG(logger, DEBUG, "Watcher is running");
+	return mRunning;
+}
+
+void Watcher::Start(Watcher* w)
+{
+	while(w->isRunning()) {
+		w->listen();
+	}
+}
+
+void Watcher::Stop()
+{
+	mRunning = false;
 }
 
 #ifdef DEBUG

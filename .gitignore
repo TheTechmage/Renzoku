@@ -2,6 +2,9 @@
 a.out
 bin
 renzoku
+src/parser/parser
+src/config/renconf
+*.a
 
 # Generated files
 *.in
@@ -22,9 +25,22 @@ src/librenzoku.a
 test-driver
 tests/test-suite.log
 tests/test_runner*
+tests/*.log
+tests/*.trs
+test_れんぞく
 
 # Misc
 *.swo
 *.swp
 LICENSE.new
 coverage
+ignoreme/
+
+build-aux/
+renzoku-0.1.0.tar.gz
+renzoku-0.1.0/
+src/parser/parser.swigcxx
+src/parser/parser_wrap.cxx
+src/parser/renconf.go
+src/parser/renconf_gc.c
+tests/PATH
